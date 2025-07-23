@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesViewState
+   version = "1.0">
+   <ContextStates>
+      <ContextState
+         contextName = "CoreDataImportedDocumentRepository.create(entity:):CoreDataImportedDocumentRepository.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "context">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "closure #1 in Container.importedDocumentRepository.getter:Dependencies.swift">
+      </ContextState>
+      <ContextState
+         contextName = "llama_vocab::impl::tokenize [inlined] std::__1::unique_ptr&lt;llm_tokenizer, std::__1::default_delete&lt;llm_tokenizer&gt;&gt;::operator bool[abi:ue170006]() const [inlined]:unique_ptr.h">
+      </ContextState>
+      <ContextState
+         contextName = "Container.importedDocumentRepository.getter:Dependencies.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "PersistenceController.shared.container.viewContext">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+   </ContextStates>
+</VariablesViewState>

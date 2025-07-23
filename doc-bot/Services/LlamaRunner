@@ -1,0 +1,2 @@
+// LlamaRunner: Bridge to llama.cpp
+// Implementation will depend on how you bridge C++ to Swift (FFI, C wrapper, etc.)

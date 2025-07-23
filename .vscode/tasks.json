@@ -1,0 +1,14 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "Build and Run doc-bot (Xcode)",
+		"command": "xcodebuild -scheme doc-bot -destination 'platform=iOS Simulator,name=iPhone 16' clean build && xcrun simctl install booted ./Build/Products/Debug-iphonesimulator/doc-bot.app && xcrun simctl launch booted br.com.felnanuke.doc-bot",
+			"group": "build",
+			"problemMatcher": [
+				"$gcc"
+			]
+		}
+	]
+}

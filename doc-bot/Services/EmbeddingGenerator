@@ -1,0 +1,2 @@
+// EmbeddingGenerator: Generates embeddings via bridge or prebuilt model
+// Implementation will depend on your embedding backend

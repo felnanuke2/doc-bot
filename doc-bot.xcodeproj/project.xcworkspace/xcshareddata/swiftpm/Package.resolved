@@ -1,0 +1,60 @@
+{
+  "originHash" : "f46c80ba18c377e49fcd314135f9201bd7b03547a9fd40e77c97977d2ceaf76f",
+  "pins" : [
+    {
+      "identity" : "factory",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/hmlongco/Factory",
+      "state" : {
+        "revision" : "ccc898f21992ebc130bc04cc197460a5ae230bcf",
+        "version" : "2.5.3"
+      }
+    },
+    {
+      "identity" : "faissmobile",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/jkrukowski/FaissMobile",
+      "state" : {
+        "revision" : "9d5b9925305eea9398cc92ce4a8e51c8a4b043af",
+        "version" : "0.0.1"
+      }
+    },
+    {
+      "identity" : "swift-argument-parser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-argument-parser",
+      "state" : {
+        "revision" : "309a47b2b1d9b5e991f36961c983ecec72275be3",
+        "version" : "1.6.1"
+      }
+    },
+    {
+      "identity" : "swift-log",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-log",
+      "state" : {
+        "revision" : "3d8596ed08bd13520157f0355e35caed215ffbfa",
+        "version" : "1.6.3"
+      }
+    },
+    {
+      "identity" : "swiftfaiss",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/jkrukowski/SwiftFaiss.git",
+      "state" : {
+        "revision" : "d3831c1e9898695ae7f680b6353e48e873d3f1d3",
+        "version" : "0.0.8"
+      }
+    },
+    {
+      "identity" : "swiftformat",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/nicklockwood/SwiftFormat",
+      "state" : {
+        "revision" : "b83a8f132ff5430f3b6ff7d912baa407caea9e29",
+        "version" : "0.57.2"
+      }
+    }
+  ],
+  "version" : 3
+}
