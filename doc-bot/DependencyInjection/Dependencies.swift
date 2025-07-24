@@ -10,7 +10,7 @@ extension Container {
     }
 
     var vectorChunkRepository: Factory<VectorChunkRepository> {
-        Factory(self) { FaissVectorRepository() }
+        Factory(self) { NaturalLanguageVectorRepository()}
     }
 
     var documentContentExtractor: Factory<DocumentContentExtractor> {
@@ -18,7 +18,7 @@ extension Container {
     }
 
     var importedDocumentsViewModel: Factory<ImportedDocumentsViewModel> {
-        Factory(self) { ImportedDocumentsViewModel() }
+        Factory(self) { @MainActor in ImportedDocumentsViewModel() }
     }
 
     var completionRepository: Factory<CompletionRepository> {
@@ -52,5 +52,9 @@ extension Container {
             let context = PersistenceController.shared.container.viewContext
             return CoreDataConversationRepository(context: context)
         }.scope(.shared)
+    }
+
+    var promptContextGenerator: Factory<PromptContextGenerator> {
+        Factory(self) { PromptContextGeneratorImpl() }
     }
 }

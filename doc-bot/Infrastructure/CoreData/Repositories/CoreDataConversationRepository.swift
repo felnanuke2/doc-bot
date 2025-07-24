@@ -62,13 +62,16 @@ final class CoreDataConversationRepository: ConversationRepository {
     private static func toPdfConversation(_ entity: CoreDataDocumentConversation) -> PdfConversation? {
         guard let id = entity.id,
               let createdAt = entity.createdAt,
-              let updatedAt = entity.updatedAt else { return nil }
+              let updatedAt = entity.updatedAt,
+              let document = entity.document
+        else { return nil }
         // messages is required, but not mapped here. Use empty array for now.
         return PdfConversation(
             id: id,
             messages: [],
             createdAt: createdAt,
-            updatedAt: updatedAt
+            updatedAt: updatedAt,
+            document: ImportedDocument.from(coreData: document)
         )
     }
 }

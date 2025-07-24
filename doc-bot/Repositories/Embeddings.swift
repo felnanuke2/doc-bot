@@ -24,8 +24,16 @@ protocol VectorChunkRepository {
     ///   - documentID: The ID of the document to search within.
     ///   - embedding: The embedding vector to compare against.
     ///   - topK: The number of closest chunks to return.
-    /// - Returns: An array of `EmbeddableChunk` that are closest to the
+    /// - Returns: An array of `StoredChunk` that are closest to the embedding
     func closestChunks(documentID: UUID, to embedding: [[Float]], topK: Int) async -> [StoredChunk]
+
+    /// Finds the K closest chunks to a given query text using semantic similarity.
+    /// - Parameters:
+    ///   - documentID: The ID of the document to search within.
+    ///   - queryText: The query string to compare against chunk content.
+    ///   - topK: The number of closest chunks to return.
+    /// - Returns: An array of `StoredChunk` that are closest to the query text
+    func closestChunks(documentID: UUID, to queryText: String, topK: Int) async -> [StoredChunk]
     /// Adds a chunk to the vector store.
     /// - Parameter chunk: The chunk to add.
     /// - Returns: Void

@@ -6,6 +6,10 @@ import SwiftFaiss
 
 
 class FaissVectorRepository: VectorChunkRepository {
+    func closestChunks(documentID: UUID, to queryText: String, topK: Int) async -> [StoredChunk] {
+        return []
+    }
+    
     /// Adds multiple chunks and their embeddings to storage in a single operation.
     /// - Parameter chunks: An array of tuples where each tuple contains an EmbeddableChunk and its corresponding embedding vector.
     func addChunk(_ chunks: [(EmbeddableChunk, [Float])]) async {

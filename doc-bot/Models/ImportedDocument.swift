@@ -7,11 +7,11 @@ protocol BaseModel: Identifiable, Codable, Equatable, Hashable {
 }
 
 struct ImportedDocument: Identifiable, Codable, Equatable, Hashable {
-    let id: UUID
-    let name: String
-    var conversations: [PdfConversation]
-    let createdAt: Date
-    let updatedAt: Date
+    let id: UUID?
+    let name: String?
+    var conversations: [PdfConversation]?
+    let createdAt: Date?
+    let updatedAt: Date?
 }
 
 struct PdfConversation: BaseModel {
@@ -19,6 +19,7 @@ struct PdfConversation: BaseModel {
     var messages: [PdfMessage]
     let createdAt: Date
     let updatedAt: Date
+    let document: ImportedDocument
 }
 
 

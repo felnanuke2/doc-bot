@@ -43,7 +43,7 @@ actor LlamaEmbeddingContext {
     deinit {
         llama_batch_free(batch)
         llama_free(context)
-        llama_free_model(model)
+        llama_model_free(model)
         // llama_backend_free()
         print("Llama context cleaned up.")
     }
@@ -70,7 +70,7 @@ actor LlamaEmbeddingContext {
         print("Enabling GPU acceleration with all layers offloaded to Metal.")
         #endif
 
-        guard let model = llama_load_model_from_file(path, model_params) else {
+        guard let model = llama_model_load_from_file(path, model_params) else {
             print("Error: Could not load model from \(path)")
             throw LlamaError.couldNotInitializeContext
         }
@@ -91,9 +91,9 @@ actor LlamaEmbeddingContext {
         
         print("DEBUG: Context configured for embeddings with mean pooling")
 
-        guard let context = llama_new_context_with_model(model, ctx_params) else {
+        guard let context = llama_init_from_model(model, ctx_params) else {
             print("Error: Could not initialize context from model.")
-            llama_free_model(model)
+            llama_model_free(model)
             throw LlamaError.couldNotInitializeContext
         }
 
@@ -139,7 +139,7 @@ actor LlamaEmbeddingContext {
         
         // Add all tokens to the batch for sequence processing
         for (i, token) in tokens.enumerated() {
-            llama_batch_add(&batch, token, Int32(i), [0], true)  // embd=true for embeddings
+            _ = llama_batch_add(&batch, token, Int32(i), [0], true)  // embd=true for embeddings
         }
         batch.n_tokens = Int32(tokens.count)
         
@@ -155,7 +155,7 @@ actor LlamaEmbeddingContext {
         print("DEBUG: llama_encode succeeded")
         
         // 5. APPROACH 1: Try getting sequence-level embeddings directly
-        let n_embd = Int(llama_n_embd(model))
+        let n_embd = Int(llama_model_n_embd(model))
         print("DEBUG: Embedding dimension: \(n_embd)")
         
         // Try to get sequence-level embeddings (this might work with pooling enabled)
@@ -263,7 +263,7 @@ actor LlamaEmbeddingContext {
             // Add tokens to the batch, assigning a unique sequence ID to each text
             let sequenceId = Int32(sequenceIndex)
             for (tokenIndex, token) in tokens.enumerated() {
-                llama_batch_add(&batch, token, Int32(tokenIndex), [sequenceId], true)
+                _ = llama_batch_add(&batch, token, Int32(tokenIndex), [sequenceId], true)
             }
             
             sequenceIds.append(sequenceId)
@@ -292,7 +292,7 @@ actor LlamaEmbeddingContext {
         
         // 4. Extract the embedding for each sequence
         var allEmbeddings: [[Float]] = []
-        let n_embd = Int(llama_n_embd(model))
+        let n_embd = Int(llama_model_n_embd(model))
         
         for seq_id in sequenceIds {
             if let seq_embeddings_ptr = llama_get_embeddings_seq(context, seq_id) {

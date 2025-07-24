@@ -12,42 +12,54 @@ private actor OutputAccumulator {
 
 class LlamaCompletionRepository: CompletionRepository {
     
-    func generateCompletion(for prompt: String) -> AsyncStream<CompletionResult> {
-        AsyncStream { continuation in
+    
+    
+    
+    func generateCompletion(context: any ContextualPrompt, cancellationToken: CancellationToken?) -> AsyncThrowingStream<CompletionResult, any Error> {
+        generateCompletion(for: context.content, cancellationToken: cancellationToken)
+    }
+   
+    
+    func generateCompletion(for prompt: String, cancellationToken: CancellationToken? = nil ) -> AsyncThrowingStream<CompletionResult, Error> {
+        AsyncThrowingStream { continuation in
             Task {
-                await complete(text: prompt, continuation: continuation)
+                do {
+                    try await complete(text: prompt, continuation: continuation, cancelationToken: cancellationToken)
+                    continuation.finish()
+                } catch {
+                    continuation.finish(throwing: error)
+                }
             }
-            continuation.finish()
         }
     }
 
-    private func complete(text: String, continuation: AsyncStream<CompletionResult>.Continuation) async -> Void {
-        do {
-            let llamaContext: LlamaCompletionContext = try LlamaCompletionContext.create_context(path:  "d")
-            DispatchQueue.main.async {
-                continuation.yield(.waiting)
-            }
-            let accumulator = OutputAccumulator()
-
-            await llamaContext.completion_init(text: text)
-            while await !llamaContext.is_done {
-                let result = await llamaContext.completion_loop()
-                await accumulator.append("\(result)")
-                DispatchQueue.main.async {
-                    continuation.yield(.progressing(result))
-                }
-            }
-
-            await llamaContext.clear()
-            let output = await accumulator.get()
-            DispatchQueue.main.async {
-                continuation.yield(.finished(output))
-            }
-        } catch {
-            print("Error in LlamaCompletionRepository.complete: \(error)")
-            DispatchQueue.main.async {
-                continuation.yield(.finished("Error: Failed to initialize completion context"))
-            }
+    private func complete(text: String, continuation: AsyncThrowingStream<CompletionResult, Error>.Continuation,  cancelationToken: CancellationToken? ) async throws {
+        // Check for cancellation before starting
+        try Task.checkCancellation()
+        // Use only file name, assume download is handled elsewhere
+        let fileName = "ggml-model-q8_0.gguf"
+        let fileManager = FileManager.default
+        let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let modelUrl = documentsURL.appendingPathComponent(fileName)
+        guard fileManager.fileExists(atPath: modelUrl.path) else {
+            continuation.yield(.finished("Error: Model file not found"))
+            return
         }
+        let llamaContext: LlamaCompletionContext = try LlamaCompletionContext.create_context(path: modelUrl.path)
+        continuation.yield(.waiting)
+        let accumulator = OutputAccumulator()
+
+        await llamaContext.completion_init(text: text)
+        while await !llamaContext.is_done && cancelationToken?.isCancelled != true {
+            // Check for cancellation during processing
+            try Task.checkCancellation()
+            let result = await llamaContext.completion_loop()
+            await accumulator.append("\(result)")
+            continuation.yield(.progressing(result))
+        }
+
+        await llamaContext.clear()
+        let output = await accumulator.get()
+        continuation.yield(.finished(output))
     }
 }

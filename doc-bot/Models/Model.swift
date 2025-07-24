@@ -1,7 +1,7 @@
 import Foundation
 
 struct Model: Identifiable, Codable, Equatable, Hashable {
-    let id = UUID()
+    var id: UUID = UUID()
     let name: String
     let url: String
     let filename: String

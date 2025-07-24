@@ -67,7 +67,7 @@ class ConcreteModelDownloaderRepository: NSObject, ModelDownloaderRepository, UR
     func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
         let progress = Double(totalBytesWritten) / Double(totalBytesExpectedToWrite)
         // Safely access the continuation for this task.
-        accessQueue.sync {
+        _ = accessQueue.sync {
             self.continuations[downloadTask]?.yield(.progressing(progress))
         }
     }

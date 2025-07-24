@@ -7,14 +7,34 @@
 
 import SwiftUI
 
+
+import SwiftUI
+
 @main
 struct doc_botApp: App {
     let persistenceController = PersistenceController.shared
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            RootView()
                 .environment(\.managedObjectContext, persistenceController.container.viewContext)
+        }
+    }
+}
+
+struct RootView: View {
+    @StateObject private var modelDownloader = ModelDownloader.shared
+
+    var body: some View {
+        Group {
+            if case .finished = modelDownloader.state {
+                ContentView()
+            } else {
+                ModelLoadingView(downloader: modelDownloader)
+            }
+        }
+        .onAppear {
+            modelDownloader.downloadModelIfNeeded()
         }
     }
 }

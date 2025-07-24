@@ -22,7 +22,7 @@ class NaturalLanguageChunkGenerator: ChunkGeneratorRepository {
     ///
     /// The 512 token limit for many embedding models roughly corresponds to 350-400 English words.
     /// We use 384 as a conservative target to ensure the resulting chunks are under the limit.
-    private let chunkTargetWordCount = 384
+    private let chunkTargetWordCount = 200
     
     /// Generates chunks by grouping sentences to reach a target word count.
     func generateChunks(documentID: UUID, from text: String) async -> [EmbeddableChunk] {

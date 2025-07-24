@@ -42,7 +42,7 @@ final class CoreDataImportedDocumentRepository: ImportedDocumentRepository {
     func update(entity: ImportedDocument) async throws -> ImportedDocument {
         return try await context.perform {
             let request = CoreDataImportedDocument.fetchRequest()
-            request.predicate = NSPredicate(format: "id == %@", entity.id as CVarArg)
+            request.predicate = NSPredicate(format: "id == %@", entity.id! as CVarArg)
             request.fetchLimit = 1
             let results = try self.context.fetch(request)
             guard let coreDataEntity = results.first else { 
