@@ -37,7 +37,7 @@ class LlamaCompletionRepository: CompletionRepository {
         // Check for cancellation before starting
         try Task.checkCancellation()
         // Use only file name, assume download is handled elsewhere
-        let fileName = "ggml-model-q8_0.gguf"
+        let fileName = "ggml-model.gguf"
         let fileManager = FileManager.default
         let documentsURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask).first!
         let modelUrl = documentsURL.appendingPathComponent(fileName)

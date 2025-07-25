@@ -12,29 +12,20 @@ import SwiftUI
 
 @main
 struct doc_botApp: App {
-    let persistenceController = PersistenceController.shared
-
     var body: some Scene {
         WindowGroup {
             RootView()
-                .environment(\.managedObjectContext, persistenceController.container.viewContext)
         }
     }
 }
 
+// MARK: - SwiftUI Views
 struct RootView: View {
-    @StateObject private var modelDownloader = ModelDownloader.shared
+    // Create the ModelManager as a StateObject to keep it alive.
+    @StateObject private var modelManager = ModelManager.shared
 
     var body: some View {
-        Group {
-            if case .finished = modelDownloader.state {
-                ContentView()
-            } else {
-                ModelLoadingView(downloader: modelDownloader)
-            }
-        }
-        .onAppear {
-            modelDownloader.downloadModelIfNeeded()
-        }
+        // Pass the manager to the view hierarchy as an environment object.
+        ContentView().environmentObject(modelManager)
     }
 }

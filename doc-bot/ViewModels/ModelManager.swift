@@ -1,3 +1,11 @@
+//
+//  ModelManager.swift
+//  doc-bot
+//
+//  Created by LUIZ FELIPE ALVES LIMA on 25/07/25.
+//
+import Foundation
+
 // MARK: - Model Manager
 // An ObservableObject to manage model state, downloads, and persistence.
 @MainActor
@@ -26,16 +34,16 @@ class ModelManager: NSObject, ObservableObject, URLSessionDownloadDelegate {
 
     // The currently active download task.
     private var downloadTask: URLSessionDownloadTask?
-    private var modelToDownload: Model?
+    var modelToDownload: Model?
 
     private override init() {
         // Define the list of available models.
         self.models = [
-            Model(name: "Qwen2-0.5B (Q4_K_M, 0.3 GiB)", url: "https://huggingface.co/QuantFactory/Qwen2-0.5B-GGUF/resolve/main/Qwen2-0.5B.Q4_K_M.gguf?download=true", filename: "Qwen2-0.5B.Q4_K_M.gguf"),
-            Model(name: "TinyLlama-1.1B (Q4_0, 0.6 GiB)", url: "https://huggingface.co/TheBloke/TinyLlama-1.1B-1T-OpenOrca-GGUF/resolve/main/tinyllama-1.1b-1t-openorca.Q4_0.gguf?download=true", filename: "tinyllama-1.1b-1t-openorca.Q4_0.gguf"),
-            Model(name: "TinyLlama-1.1B Chat (Q8_0, 1.1 GiB)", url: "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q8_0.gguf?download=true", filename: "tinyllama-1.1b-chat-v1.0.Q8_0.gguf"),
-            Model(name: "Phi-2.7B (Q4_0, 1.6 GiB)", url: "https://huggingface.co/ggml-org/models/resolve/main/phi-2/ggml-model-q4_0.gguf?download=true", filename: "phi-2-q4_0.gguf"),
-            Model(name: "Mistral-7B-v0.1 (Q4_0, 3.8 GiB)", url: "https://huggingface.co/TheBloke/Mistral-7B-v0.1-GGUF/resolve/main/mistral-7b-v0.1.Q4_0.gguf?download=true", filename: "mistral-7b-v0.1.Q4_0.gguf"),
+            Model(name: "Qwen2-0.5B (Q4_K_M, 0.32 GiB)", url: "https://huggingface.co/QuantFactory/Qwen2-0.5B-GGUF/resolve/main/Qwen2-0.5B.Q4_K_M.gguf?download=true", filename: "Qwen2-0.5B.Q4_K_M.gguf"),
+            Model(name: "TinyLlama-1.1B (Q4_0, 0.62 GiB)", url: "https://huggingface.co/TheBloke/TinyLlama-1.1B-1T-OpenOrca-GGUF/resolve/main/tinyllama-1.1b-1t-openorca.Q4_0.gguf?download=true", filename: "tinyllama-1.1b-1t-openorca.Q4_0.gguf"),
+            Model(name: "TinyLlama-1.1B Chat (Q8_0, 1.09 GiB)", url: "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q8_0.gguf?download=true", filename: "tinyllama-1.1b-chat-v1.0.Q8_0.gguf"),
+            Model(name: "Phi-2.7B (Q4_0, 1.57 GiB)", url: "https://huggingface.co/ggml-org/models/resolve/main/phi-2/ggml-model-q4_0.gguf?download=true", filename: "phi-2-q4_0.gguf"),
+            Model(name: "Mistral-7B-v0.1 (Q4_0, 3.57 GiB)", url: "https://huggingface.co/TheBloke/Mistral-7B-v0.1-GGUF/resolve/main/mistral-7b-v0.1.Q4_0.gguf?download=true", filename: "mistral-7b-v0.1.Q4_0.gguf"),
         ]
         
         // Set up the file path for the downloaded model.

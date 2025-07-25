@@ -23,7 +23,6 @@ class ImportedDocumentsViewModel: ObservableObject {
     @Published var importError: Error?
     @Published var importProgress: Double = 0.0
     @Published public var documents: [ImportedDocument] = []
-    @Published public var embeddingModel = embeddModels[0]
 
     init() {
         Task { [weak self] in

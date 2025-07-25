@@ -9,12 +9,22 @@ import CoreData
 import SwiftUI
 
 struct ContentView: View {
-
     var body: some View {
-        ImportedDocumentsView()
+        // The main UI is a TabView.
+        TabView {
+            ImportedDocumentsView()
+                .tabItem {
+                    Label("Import", systemImage: "doc.text.magnifyingglass")
+                }
+            
+            ModelsView()
+                .tabItem {
+                    Label("Models", systemImage: "cpu")
+                }
+        }
     }
-
 }
+
 
 
 #Preview {
