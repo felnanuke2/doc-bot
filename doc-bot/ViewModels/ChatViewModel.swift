@@ -69,10 +69,11 @@ class ChatViewModel: ObservableObject {
         let documentId = conversation.document.id!
 
         Task {
-            let vectors = await chunkEmbedder.embed(
-                chunk: EmbeddableChunk(content: trimmed, documentID: documentId),
-                with: .defaultModel)
-            let topK = await vectorStore.closestChunks(documentID: documentId, to: [vectors], topK: 3)
+            guard let chunks = await vectorStore.restoreEmbeddings(for: documentId) else {
+                print("Failed to load document embeddings")
+                return
+            }
+            let topK = await chunkEmbedder.searchRelevantChunk(for: trimmed, chunks: chunks, limit: 3)
             let prompt = promptContextGenerator.generateContext(
                 for: trimmed, with: topK.map{$0.content}.joined(separator: "\n"))
             await handleCompletionStream(for: prompt, cancellationToken: cancellationToken!)
@@ -186,8 +187,3 @@ class ChatViewModel: ObservableObject {
     }
 }
 
-extension LocalModel {
-
-    public static let defaultModel = LocalModel(
-        localPath: URL(fileURLWithPath: "ggml-model-q8_0.gguf"))
-}

@@ -10,7 +10,7 @@ extension Container {
     }
 
     var vectorChunkRepository: Factory<VectorChunkRepository> {
-        Factory(self) { NaturalLanguageVectorRepository()}
+        Factory(self) { VectorRepositoryImpl()}
     }
 
     var documentContentExtractor: Factory<DocumentContentExtractor> {

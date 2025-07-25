@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		F9ADB5C42E2E83FB008D3211 /* Factory in Frameworks */ = {isa = PBXBuildFile; productRef = F9ADB5C32E2E83FB008D3211 /* Factory */; };
 		F9ADB5D02E2E88EA008D3211 /* LlamaFramework in Frameworks */ = {isa = PBXBuildFile; productRef = F9ADB5CF2E2E88EA008D3211 /* LlamaFramework */; };
-		F9ADB5E22E2EB531008D3211 /* SwiftFaiss in Frameworks */ = {isa = PBXBuildFile; productRef = F9ADB5E12E2EB531008D3211 /* SwiftFaiss */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -84,7 +83,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				F9ADB5E22E2EB531008D3211 /* SwiftFaiss in Frameworks */,
 				F9ADB5C42E2E83FB008D3211 /* Factory in Frameworks */,
 				F9ADB5D02E2E88EA008D3211 /* LlamaFramework in Frameworks */,
 			);
@@ -157,7 +155,6 @@
 			packageProductDependencies = (
 				F9ADB5C32E2E83FB008D3211 /* Factory */,
 				F9ADB5CF2E2E88EA008D3211 /* LlamaFramework */,
-				F9ADB5E12E2EB531008D3211 /* SwiftFaiss */,
 			);
 			productName = "Doc Bot";
 			productReference = F9D584772E2D774F008F79A1 /* doc-bot.app */;
@@ -244,7 +241,6 @@
 			packageReferences = (
 				F9836BF62E2E81FE00987B62 /* XCRemoteSwiftPackageReference "Factory" */,
 				F9ADB5CE2E2E86B0008D3211 /* XCLocalSwiftPackageReference "LlamaCpp" */,
-				F9ADB5DC2E2EB443008D3211 /* XCRemoteSwiftPackageReference "SwiftFaiss" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = F9D584782E2D774F008F79A1 /* Products */;
@@ -623,14 +619,6 @@
 				minimumVersion = 2.5.3;
 			};
 		};
-		F9ADB5DC2E2EB443008D3211 /* XCRemoteSwiftPackageReference "SwiftFaiss" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/jkrukowski/SwiftFaiss.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.0.8;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -643,11 +631,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = F9ADB5CE2E2E86B0008D3211 /* XCLocalSwiftPackageReference "LlamaCpp" */;
 			productName = LlamaFramework;
-		};
-		F9ADB5E12E2EB531008D3211 /* SwiftFaiss */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = F9ADB5DC2E2EB443008D3211 /* XCRemoteSwiftPackageReference "SwiftFaiss" */;
-			productName = SwiftFaiss;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

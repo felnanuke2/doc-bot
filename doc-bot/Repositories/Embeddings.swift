@@ -5,7 +5,7 @@ protocol ChunkEmbeddingRepository {
     /// - Parameter chunk: The chunk to embed.
     /// - Returns: An array of doubles representing the embedded vector.
     /// This method is used to convert text into a format suitable for vector storage and search.
-    func embed(chunk: EmbeddableChunk, with model: LocalModel) async -> [Float]
+    func embed(chunk: EmbeddableChunk) async -> EmbeddedChunk
     
     /// Embeds multiple chunks of text into vector representations in a single batch operation.
     /// This is significantly more efficient than calling embed(chunk:) multiple times.
@@ -13,40 +13,20 @@ protocol ChunkEmbeddingRepository {
     ///   - chunks: The chunks to embed.
     ///   - model: The local model to use for embedding.
     /// - Returns: An array of embedding vectors, one for each input chunk.
-    func embed(chunks: [EmbeddableChunk], with model: LocalModel) async -> [[Float]]
+    func embed(chunks: [EmbeddableChunk]) async -> [EmbeddedChunk]
+    
+    
+    func searchRelevantChunk(for query: String, chunks: [EmbeddedChunk], limit: Int) async -> [EmbeddedChunk]
 }
 
 /// Protocol for types that can store and retrieve embeddings.
 /// This protocol defines the methods for managing embeddings in a vector store.
 protocol VectorChunkRepository {
-    /// Retrieves the closest chunks to a given embedding for a specific document.
-    /// - Parameters:
-    ///   - documentID: The ID of the document to search within.
-    ///   - embedding: The embedding vector to compare against.
-    ///   - topK: The number of closest chunks to return.
-    /// - Returns: An array of `StoredChunk` that are closest to the embedding
-    func closestChunks(documentID: UUID, to embedding: [[Float]], topK: Int) async -> [StoredChunk]
-
-    /// Finds the K closest chunks to a given query text using semantic similarity.
-    /// - Parameters:
-    ///   - documentID: The ID of the document to search within.
-    ///   - queryText: The query string to compare against chunk content.
-    ///   - topK: The number of closest chunks to return.
-    /// - Returns: An array of `StoredChunk` that are closest to the query text
-    func closestChunks(documentID: UUID, to queryText: String, topK: Int) async -> [StoredChunk]
-    /// Adds a chunk to the vector store.
-    /// - Parameter chunk: The chunk to add.
-    /// - Returns: Void
-    func addChunk(_ chunk: EmbeddableChunk, embedding: [Float]) async
+    /// each time this is called will override last if documentId is the same or will create if not existent already
+    func store(embedded: [EmbeddedChunk], for documentID: UUID) async
     
-
-    /// Adds multiple chunks to the vector store in a single operation.
-    /// This is more efficient than calling addChunk(_:embedding:) multiple times.
-    /// - Parameter chunks: An array of tuples where each tuple contains an `EmbeddableChunk` and its corresponding embedding vector.
-    /// - Returns: Void
-    func addChunk(_ chunks: [(EmbeddableChunk, [Float])]) async
-    
-
+    /// return the chunkd if already stored or null if not existent
+    func restoreEmbeddings(for documentID: UUID) async -> [EmbeddedChunk]?
 }
 
 /// Protocol for types that can generate chunks from text.

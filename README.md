@@ -11,9 +11,8 @@ doc-bot is a fully offline Retrieval-Augmented Generation (RAG) app targeting iO
 - **Fully Offline RAG**: All retrieval, embedding, and LLM inference is performed on-device using only downloaded models. No cloud or online API calls.
 - **Offline RAG Chat**: Chat with your imported PDF documents using AI, with all processing done locally.
 - **PDF Import**: Uses Apple PDFKit to extract text from PDF files.
-- **Chunking & Embedding**: Utilizes the NaturalLanguage framework to split text into chunks and generate embeddings.
-- **Vector Similarity Search**: Uses Faiss for fast, approximate nearest neighbor search over embeddings.
-- **Local Embedding Storage**: Embeddings are saved as JSON for fast, private retrieval.
+- **Chunking, Embedding & Similarity Search**: Utilizes Apple's NaturalLanguage framework to split text into chunks, generate embeddings, and perform similarity search—all on-device, without Faiss or external libraries.
+- **Local Embedding Storage**: Embeddings are saved as JSON files in the app support directory using FileManager for fast, private retrieval.
 - **CoreData Persistence**: Documents, conversations, and messages are stored using CoreData for reliability and offline access.
 - **Local LLM Inference**: Answers are generated using the Phi Mini 3 Q4 model (or other supported GGUF models) via llama.cpp integration.
 - **Modern SwiftUI UI**: Clean, native interface for document import, chat, and management.
@@ -23,14 +22,14 @@ doc-bot is a fully offline Retrieval-Augmented Generation (RAG) app targeting iO
 1. **Import PDF**: Select a PDF to import. The app extracts its text using PDFKit.
 2. **Chunking**: The text is split into manageable chunks using Apple's NaturalLanguage framework, targeting optimal size for embeddings.
 3. **Embedding Generation**: Each chunk is embedded using a local embedding model (e.g., nomic-embed-text-v1.5 or bge-small-en-v1.5, in GGUF format).
-4. **Vector Storage & Search**: Embeddings are stored locally as JSON files, and Faiss is used for fast approximate nearest neighbor search to find relevant chunks.
+4. **Vector Storage & Search**: Embeddings are stored as JSON files in the app support directory using FileManager, and similarity search is performed using Apple's NaturalLanguage framework to find relevant chunks—no Faiss required.
 5. **Persistence**: All documents, conversations, and messages are saved using CoreData for offline access and reliability.
-6. **Chat**: When you ask a question, the app finds the most relevant chunks using Faiss and uses a local LLM (Phi Mini 3 Q4 or similar) via llama.cpp to generate an answer.
+6. **Chat**: When you ask a question, the app finds the most relevant chunks using Apple's NaturalLanguage similarity search and uses a local LLM (Phi Mini 3 Q4 or similar) via llama.cpp to generate an answer.
+
 
 ## Supported Models
 
-- **LLMs**: Phi Mini 3 Q4, TinyLlama, Mistral, OpenHermes, and others in GGUF format.
-- **Embeddings**: nomic-embed-text-v1.5, bge-small-en-v1.5 (GGUF format).
+- **LLMs**: Qwen2-0.5B.Q4_K_M (default), chosen for its small download size and efficient memory allocation on smartphones. While not as powerful as cloud models like Claude Sonnet 4, Qwen2 provides satisfactory results and works fully offline on-device, making it ideal for mobile use. Other supported models include Phi Mini 3 Q4, TinyLlama, Mistral, OpenHermes, and others in GGUF format.
 
 ## Privacy & Offline
 
@@ -55,15 +54,15 @@ doc-bot is a fully offline Retrieval-Augmented Generation (RAG) app targeting iO
 3. **Build and run on your device or simulator**
 4. **Import a PDF and start chatting!**
 
+
 ## Architecture
 
 - **SwiftUI** for UI
 - **PDFKit** for PDF text extraction
-- **NaturalLanguage** for chunking
-- **Faiss** for fast vector similarity search
+- **NaturalLanguage** for chunking, embedding, and similarity search
 - **CoreData** for persistence of documents, conversations, and messages
-- **llama.cpp** (via Swift bindings) for LLM and embedding inference
-- **JSON** for vector storage
+- **llama.cpp** (via Swift bindings) for LLM and embedding inference (using Qwen2-0.5B.Q4_K_M by default for its small size and mobile suitability)
+- **JSON (in App Support via FileManager)** for vector storage
 - **Combine/Factory** for dependency injection and state management
 
 ## Extending & Customizing
@@ -74,7 +73,7 @@ doc-bot is a fully offline Retrieval-Augmented Generation (RAG) app targeting iO
 
 ## License
 
-MIT License. See LICENSE file for details.
+MIT License. See [LICENSE](LICENSE) file for details.
 
 ## Credits
 

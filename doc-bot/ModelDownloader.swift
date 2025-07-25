@@ -29,7 +29,7 @@ class ModelDownloader: NSObject, ObservableObject, URLSessionDownloadDelegate {
             return
         }
         print("Model not found. Starting download...")
-        guard let modelURL = URL(string: "https://huggingface.co/Qwen/Qwen2-1.5B-Instruct-GGUF/resolve/main/qwen2-1_5b-instruct-q4_k_m.gguf?download=true") else {
+        guard let modelURL = URL(string: "https://huggingface.co/QuantFactory/Qwen2-0.5B-GGUF/resolve/main/Qwen2-0.5B.Q4_K_M.gguf?download=true") else {
             self.state = .failed(URLError(.badURL))
             return
         }

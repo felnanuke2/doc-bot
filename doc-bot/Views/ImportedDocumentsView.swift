@@ -180,25 +180,30 @@ struct ImportedDocumentsView_Previews: PreviewProvider {
             }
         }
         class MockChunkEmbedder: ChunkEmbeddingRepository {
-            func embed(chunk: EmbeddableChunk, with localModel: LocalModel) async -> [Float] { [] }
-            func embed(chunks: [EmbeddableChunk], with model: LocalModel) async -> [[Float]] {
-                return chunks.map { _ in [] }
-            }
-        }
-        class MockVectorStore: VectorChunkRepository {
-            func closestChunks(documentID: UUID, to queryText: String, topK: Int) async -> [StoredChunk] {
-                return []
+            func embed(chunk: EmbeddableChunk) async -> EmbeddedChunk {
+                return .init(id: UUID(), content: "", documentID: .init())
             }
             
-            func addChunk(_ chunks: [(EmbeddableChunk, [Float])]) async {
-
+            func embed(chunks: [EmbeddableChunk]) async -> [EmbeddedChunk] {
+                []
             }
-
-            func closestChunks(documentID: UUID, to embedding: [[Float]], topK: Int) async
-                -> [StoredChunk]
-            { [] }
-
-            func addChunk(_ chunk: EmbeddableChunk, embedding: [Float]) async {}
+            
+            func searchRelevantChunk(for query: String, chunks: [EmbeddedChunk], limit: Int) async -> [EmbeddedChunk] {
+                []
+            }
+            
+          
+        }
+        class MockVectorStore: VectorChunkRepository {
+            func store(embedded: [EmbeddedChunk], for documentID: UUID) async {
+                
+            }
+            
+            func restoreEmbeddings(for documentID: UUID) async -> [EmbeddedChunk]? {
+                []
+            }
+            
+           
         }
         class MockContentExtractor: DocumentContentExtractor {
             func extractContent(from fileURL: URL) async -> String? { "" }

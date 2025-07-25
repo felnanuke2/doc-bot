@@ -16,21 +16,12 @@ struct GeneratedPrompt: ContextualPrompt {
 final class PromptContextGeneratorImpl: PromptContextGenerator {
     func generateContext(for prompt: String, with context: String) -> any ContextualPrompt {
         let output = """
-        You are a helpful and precise AI assistant. Your task is to answer the user's question based *only* on the provided context.
+        Context: \(context)
         
-        Follow these rules strictly:
-        1.  Base your answer solely on the information given in the "CONTEXT" section. Do not use any external knowledge.
-        2.  If the answer to the question cannot be found in the context, respond with "The information is not available in the provided context."
-        3.  Answer the question directly and concisely.
+        Human: \(prompt)
         
-        ---
-        CONTEXT:
-        \(context)
-        
-        QUESTION:
-        \(prompt)
+        Assistant: Based on the given context, I will provide a concise and accurate answer to the question.
         """
-       
         return GeneratedPrompt(content: output)
     }
 }
