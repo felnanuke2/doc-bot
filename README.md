@@ -54,6 +54,23 @@ doc-bot is a fully offline Retrieval-Augmented Generation (RAG) app targeting iO
 3. **Build and run on your device or simulator**
 4. **Import a PDF and start chatting!**
 
+## Assets & Screenshots
+
+<p align="center">
+  <img src="images/Screenshot%202025-07-25%20at%2014.45.27.png" alt="App Screenshot" width="300" />
+</p>
+
+<p align="center">
+  <img src="images/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20-%202025-07-25%20at%2018.18.46.png" alt="Simulator Screenshot 1" width="300" />
+  <img src="images/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20-%202025-07-25%20at%2018.18.54.png" alt="Simulator Screenshot 2" width="300" />
+  <img src="images/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20-%202025-07-25%20at%2018.20.06.png" alt="Simulator Screenshot 3" width="300" />
+  <img src="images/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20-%202025-07-25%20at%2018.20.51.png" alt="Simulator Screenshot 4" width="300" />
+</p>
+
+<p align="center">
+  <a href="images/Simulator%20Screen%20Recording%20-%20iPhone%2016%20Pro%20-%202025-07-25%20at%2018.18.34.mp4">▶️ Watch Simulator Screen Recording</a>
+</p>
+
 
 ## Architecture
 
