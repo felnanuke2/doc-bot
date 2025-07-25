@@ -67,8 +67,9 @@ doc-bot is a fully offline Retrieval-Augmented Generation (RAG) app targeting iO
   <img src="images/Simulator%20Screenshot%20-%20iPhone%2016%20Pro%20-%202025-07-25%20at%2018.20.51.png" alt="Simulator Screenshot 4" width="300" />
 </p>
 
+
 <p align="center">
-  <a href="images/Simulator%20Screen%20Recording%20-%20iPhone%2016%20Pro%20-%202025-07-25%20at%2018.18.34.mp4">▶️ Watch Simulator Screen Recording</a>
+  <a href="https://drive.google.com/file/d/1MB253zuVxXu-hbVjtgr3nbadbO-Nu4n2/view?usp=sharing">▶️ Watch Demo Video (Google Drive)</a>
 </p>
 
 
