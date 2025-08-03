@@ -5,6 +5,8 @@ scheme: doc-bot
 output_directory: .
 source_directory: .
 build_directory: ./build
+binary_basename: doc-bot
+binary_file: doc-bot.app/doc-bot
 
 # Files and directories to ignore from coverage
 ignore:

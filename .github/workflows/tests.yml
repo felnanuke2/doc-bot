@@ -27,6 +27,7 @@ jobs:
             -scheme doc-bot \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
             -enableCodeCoverage YES \
+            -only-testing:doc-botTests \
             -derivedDataPath ./build \
             clean test
             
@@ -35,9 +36,27 @@ jobs:
           
       - name: Generate Coverage Report
         run: |
+          # Debug: Show build directory structure
+          echo "Build directory structure:"
+          find ./build -type d -name "*ProfileData*" || echo "No ProfileData found"
+          find ./build -name "doc-bot" -type f || echo "No doc-bot binary found"
+          find ./build -name "*.app" || echo "No .app found"
+          
+          # Generate coverage report
           slather coverage --cobertura-xml \
                           --scheme doc-bot \
+                          --build-directory ./build \
+                          --binary-basename doc-bot \
                           doc-bot.xcodeproj
+                          
+          # Verify output file was created
+          if [ -f "cobertura.xml" ]; then
+            echo "Coverage report generated successfully"
+            ls -la cobertura.xml
+          else
+            echo "ERROR: Coverage report not generated"
+            exit 1
+          fi
           
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v4
