@@ -27,7 +27,6 @@ jobs:
             -scheme doc-bot \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5,arch=arm64' \
             -enableCodeCoverage YES \
-            -only-testing:doc-botTests \
             clean build test \
             ARCHS=arm64
           
