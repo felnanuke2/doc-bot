@@ -28,7 +28,8 @@ jobs:
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
             -enableCodeCoverage YES \
             -only-testing:doc-botTests \
-            clean build test
+            clean build test \
+            ARCHS=arm64
           
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v4
