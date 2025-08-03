@@ -52,6 +52,8 @@
 			isa = PBXFileSystemSynchronizedGroupBuildPhaseMembershipExceptionSet;
 			buildPhase = F9836BE62E2E80EE00987B62 /* Sources */;
 			membershipExceptions = (
+				"/Localized: Resources/InfoPlist.strings",
+				"/Localized: Resources/Localizable.strings",
 				Assets.xcassets,
 			);
 		};
@@ -235,6 +237,8 @@
 			knownRegions = (
 				en,
 				Base,
+				es,
+				"pt-BR",
 			);
 			mainGroup = F9D5846E2E2D774F008F79A1;
 			minimizedProjectReferenceProxies = 1;

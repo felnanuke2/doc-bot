@@ -27,15 +27,11 @@ final class CoreDataImportedDocumentRepository: ImportedDocumentRepository {
             let request = CoreDataImportedDocument.fetchRequest()
             request.predicate = NSPredicate(format: "id == %@", id as CVarArg)
             request.fetchLimit = 1
+            // Prefetch conversations relationship
+            request.relationshipKeyPathsForPrefetching = ["conversations", "conversations.messages"]
             let results = try self.context.fetch(request)
             guard let entity = results.first else { return nil }
-            return ImportedDocument(
-                id: entity.id!,
-                name: entity.name ?? "",
-                conversations: [], // Deserialize if needed
-                createdAt: entity.createdAt ?? Date(),
-                updatedAt: entity.updatedAt ?? Date()
-            )
+            return ImportedDocument.from(coreData: entity)
         }
     }
     
@@ -73,19 +69,13 @@ final class CoreDataImportedDocumentRepository: ImportedDocumentRepository {
             let request = CoreDataImportedDocument.fetchRequest()
             request.sortDescriptors = [NSSortDescriptor(key: "createdAt", ascending: false)]
             request.returnsObjectsAsFaults = false
+            // Prefetch conversations relationship to avoid lazy loading issues
+            request.relationshipKeyPathsForPrefetching = ["conversations", "conversations.messages"]
             let entities = try self.context.fetch(request)
             return entities.map { entity in
-                ImportedDocument(
-                    id: entity.id!,
-                    name: entity.name ?? "",
-                    conversations: [], // Deserialize if needed
-                    createdAt: entity.createdAt ?? Date(),
-                    updatedAt: entity.updatedAt ?? Date()
-                )
+                ImportedDocument.from(coreData: entity)
             }
         }
     }
 }
 
-// NOTE: You must define ImportedDocumentEntity in your Core Data model with matching fields.
-// For full support, you should also serialize/deserialize the conversations property as needed.

@@ -14,7 +14,7 @@
         <attribute name="subject" optional="YES" attributeType="String"/>
         <attribute name="updatedAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>
         <relationship name="document" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="CoreDataImportedDocument" inverseName="conversations" inverseEntity="CoreDataImportedDocument"/>
-        <relationship name="messages" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="CoreDataConversationMessage" inverseName="conversation" inverseEntity="CoreDataConversationMessage"/>
+        <relationship name="messages" optional="YES" toMany="YES" deletionRule="Cascade" destinationEntity="CoreDataConversationMessage" inverseName="conversation" inverseEntity="CoreDataConversationMessage"/>
     </entity>
     <entity name="CoreDataImportedDocument" representedClassName="CoreDataImportedDocument" syncable="YES" codeGenerationType="class">
         <attribute name="createdAt" optional="YES" attributeType="Date" usesScalarValueType="NO"/>

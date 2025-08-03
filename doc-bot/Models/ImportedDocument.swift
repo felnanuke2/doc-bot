@@ -9,26 +9,28 @@ protocol BaseModel: Identifiable, Codable, Equatable, Hashable {
 struct ImportedDocument: Identifiable, Codable, Equatable, Hashable {
     let id: UUID?
     let name: String?
-    var conversations: [PdfConversation]?
+    var conversations: [ChatConversation]?
     let createdAt: Date?
     let updatedAt: Date?
 }
 
-struct PdfConversation: BaseModel {
+struct ChatConversation: BaseModel {
     let id: UUID
-    var messages: [PdfMessage]
+    var messages: [ChatMessage]
+    var subject: String?
     let createdAt: Date
     let updatedAt: Date
     let document: ImportedDocument
 }
 
 
-struct PdfMessage: BaseModel {
+struct ChatMessage: BaseModel {
     let id: UUID
     let role: PdfMessageRole
     let content: String
     let createdAt: Date
     let updatedAt: Date
+    let conversation: ChatConversation?
 }
 
 enum PdfMessageRole: String, Codable, Equatable {

@@ -14,12 +14,17 @@ struct ContentView: View {
         TabView {
             ImportedDocumentsView()
                 .tabItem {
-                    Label("Import", systemImage: "doc.text.magnifyingglass")
+                    Label(LocalizedString.tabImport, systemImage: "doc.text.magnifyingglass")
                 }
             
             ModelsView()
                 .tabItem {
-                    Label("Models", systemImage: "cpu")
+                    Label(LocalizedString.tabModels, systemImage: "cpu")
+                }
+            
+            SettingsView()
+                .tabItem {
+                    Label(LocalizedString.tabConfigurations, systemImage: "gearshape")
                 }
         }
     }

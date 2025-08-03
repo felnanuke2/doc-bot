@@ -57,4 +57,8 @@ extension Container {
     var promptContextGenerator: Factory<PromptContextGenerator> {
         Factory(self) { PromptContextGeneratorImpl() }
     }
+    
+    var subjectRepository: Factory<SubjectRepository> {
+        Factory(self) { ConcreteSubjectRepository() }
+    }
 }

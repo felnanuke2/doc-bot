@@ -1,0 +1,75 @@
+/* Navigation Titles */
+"nav.documents" = "Your Documents";
+"nav.models" = "Download Models";
+"nav.chat" = "Document Chat";
+"nav.configurations" = "Configuration";
+
+/* Tab Labels */
+"tab.import" = "Import";
+"tab.models" = "Models";
+"tab.configurations" = "Configuration";
+
+/* Buttons */
+"button.import" = "Import Document";
+"button.ok" = "OK";
+"button.stop" = "Stop";
+"button.send" = "Send";
+"button.cancel" = "Cancel";
+"button.dismiss" = "Dismiss";
+
+/* Documents View */
+"documents.empty.title" = "No Documents Yet";
+"documents.empty.subtitle" = "Tap the '+' icon to import a new PDF document.";
+"documents.importing" = "Importing document...";
+"documents.loading" = "Loading documents...";
+"documents.untitled" = "Untitled Document";
+"documents.conversations.count" = "Conversations: %d";
+
+/* Models View */
+"models.active.title" = "Active Model";
+"models.available.title" = "Available Models";
+"models.no.model" = "No model downloaded. Select one from the list below.";
+"models.ready" = "Ready to use";
+"models.progress.format" = "%.0f%%";
+
+/* Model Loading */
+"model.initializing" = "Initializing...";
+"model.downloading" = "Downloading AI Model...";
+"model.download.failed" = "Download Failed";
+"model.download.complete" = "Download Complete!";
+
+/* Chat */
+"chat.welcome" = "Hello! I'm here to help you understand this document. What would you like to know?";
+"chat.typing" = "Assistant is typing...";
+"chat.placeholder" = "Ask about the document...";
+
+/* Conversations */
+"conversation.delete" = "Delete";
+"conversation.delete.title" = "Delete Conversation";
+"conversation.delete.message" = "Are you sure you want to delete this conversation? This action cannot be undone.";
+"conversation.new" = "New Conversation";
+"conversation.no.messages" = "No messages yet";
+"conversations.title" = "Conversations";
+"conversations.new.chat" = "New Chat";
+"conversations.loading" = "Loading conversations...";
+"conversations.empty.title" = "No conversations yet";
+"conversations.empty.subtitle" = "Start a new conversation to begin chatting about this document";
+
+/* Alerts */
+"alert.error.title" = "Import Failed";
+"alert.error.message" = "Failed to import document. Please try again.";
+
+/* Accessibility */
+"accessibility.delete" = "Delete";
+"accessibility.download" = "Download";
+"accessibility.sidebar" = "Toggle Sidebar";
+
+/* Languages */
+"languages.section.title" = "Available Languages";
+"languages.footer.note" = "App restart may be required for full language change to take effect.";
+
+/* Theme */
+"theme.section.title" = "Appearance";
+"theme.light" = "Light";
+"theme.dark" = "Dark";
+"theme.system" = "System";

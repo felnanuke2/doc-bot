@@ -23,14 +23,13 @@ struct ImportedDocumentsView: View {
                     onCompletion: handleFileImport
                 )
                 .navigationDestination(for: ImportedDocument.self) { document in
-                    // Directly pass PdfConversation to ChatView
-                    ChatView(conversation: PdfConversation(id: UUID(), messages: [], createdAt: .now, updatedAt: .now, document: document ))
+                    ChatView(documentId: document.id!)
                 }
                 .alert(item: $importErrorWrapper) { wrapper in
                     Alert(
                         title: Text(Constants.errorAlertTitle),
                         message: Text(wrapper.error.localizedDescription),
-                        dismissButton: .default(Text("OK"))
+                        dismissButton: .default(Text(LocalizedString.buttonOK))
                     )
                 }
         }
@@ -41,7 +40,12 @@ struct ImportedDocumentsView: View {
     @ViewBuilder
     private var mainContent: some View {
         ZStack {
-            if viewModel.documents.isEmpty {
+            Color(.systemGroupedBackground)
+                .ignoresSafeArea()
+            
+            if viewModel.loadingContent {
+                loadingContentView
+            } else if viewModel.documents.isEmpty {
                 emptyStateView
             } else {
                 documentListView
@@ -51,6 +55,7 @@ struct ImportedDocumentsView: View {
                 importingOverlay
             }
         }
+        .animation(.easeInOut, value: viewModel.loadingContent)
         .animation(.easeInOut, value: viewModel.documents.isEmpty)
         .animation(.easeInOut, value: viewModel.isImporting)
     }
@@ -58,61 +63,86 @@ struct ImportedDocumentsView: View {
     private var documentListView: some View {
         List(viewModel.documents) { document in
             NavigationLink(value: document) {
-                HStack(spacing: 16) {
-                    Image(systemName: Constants.documentIcon)
-                        .font(.title)
-                        .foregroundStyle(.red)
-
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(document.name ?? "Untitled Document")
-                            .fontWeight(.medium)
-                            .lineLimit(2)
-                        Text("Conversations: \(document.conversations?.count ?? 0)")
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                .padding(.vertical, 8)
+                DocumentRowView(document: document)
             }
+            .listRowInsets(EdgeInsets())
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
+            .buttonStyle(PlainButtonStyle())
         }
         .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .padding(.horizontal, 16)
     }
 
     private var emptyStateView: some View {
-        VStack(spacing: 20) {
-            Image(systemName: Constants.emptyStateIcon)
-                .font(.system(size: 70))
-                .foregroundStyle(.gray.opacity(0.6))
+        VStack(spacing: 16) {
+            ZStack {
+                Circle()
+                    .fill(Color(.systemGray5))
+                    .frame(width: 80, height: 80)
+                
+                Image(systemName: Constants.emptyStateIcon)
+                    .font(.system(size: 32, weight: .medium))
+                    .foregroundStyle(.secondary)
+            }
 
-            Text(Constants.emptyStateTitle)
-                .font(.title2.bold())
-            
-            Text(Constants.emptyStateSubtitle)
-                .font(.subheadline)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
+            VStack(spacing: 8) {
+                Text(Constants.emptyStateTitle)
+                    .font(.title3.bold())
+                    .foregroundStyle(.primary)
+                
+                Text(Constants.emptyStateSubtitle)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+            }
         }
-        .foregroundStyle(.secondary)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemGroupedBackground))
+        .transition(.opacity)
+    }
+
+    private var loadingContentView: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .progressViewStyle(CircularProgressViewStyle(tint: .accentColor))
+                .scaleEffect(1.2)
+            
+            Text(Constants.loadingContentText)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemGroupedBackground))
         .transition(.opacity)
     }
 
     private var importingOverlay: some View {
         ZStack {
-            Color.black.opacity(0.2).ignoresSafeArea()
-            VStack(spacing: 20) {
+            Color.black.opacity(0.3)
+                .ignoresSafeArea()
+            
+            VStack(spacing: 16) {
                 ProgressView(value: viewModel.importProgress)
                     .progressViewStyle(.linear)
+                    .tint(.accentColor)
+                    .scaleEffect(x: 1, y: 1.5)
+                
                 Text(Constants.importingText)
-                    .font(.headline)
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundStyle(.primary)
             }
-            .padding(32)
-            .background(.thinMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 16))
-            .shadow(radius: 10)
+            .padding(24)
+            .background(.regularMaterial, in: RoundedRectangle(cornerRadius: 16))
+            .shadow(color: .black.opacity(0.1), radius: 20, x: 0, y: 10)
+            .padding(.horizontal, 40)
         }
-        .transition(.opacity)
+        .transition(.asymmetric(
+            insertion: .opacity.combined(with: .scale(scale: 0.8)),
+            removal: .opacity
+        ))
     }
 
     @ToolbarContentBuilder
@@ -121,7 +151,8 @@ struct ImportedDocumentsView: View {
             Button {
                 showingImporter = true
             } label: {
-                Label(Constants.importButtonLabel, systemImage: Constants.importButtonIcon)
+                Image(systemName: Constants.importButtonIcon)
+                    .font(.system(size: 18, weight: .medium))
             }
         }
     }
@@ -153,15 +184,16 @@ struct ImportedDocumentsView: View {
 
 private extension ImportedDocumentsView {
     enum Constants {
-        static let navTitle = "Your Documents"
-        static let importButtonLabel = "Import Document"
-        static let importButtonIcon = "plus.circle.fill"
+        static let navTitle = LocalizedString.navDocuments
+        static let importButtonLabel = LocalizedString.buttonImport
+        static let importButtonIcon = "doc.badge.plus"
         static let documentIcon = "doc.text.fill"
         static let emptyStateIcon = "doc.on.doc.fill"
-        static let emptyStateTitle = "No Documents Yet"
-        static let emptyStateSubtitle = "Tap the '+' icon to import a new PDF document."
-        static let importingText = "Importing document..."
-        static let errorAlertTitle = "Import Failed"
+        static let emptyStateTitle = LocalizedString.documentsEmptyTitle
+        static let emptyStateSubtitle = LocalizedString.documentsEmptySubtitle
+        static let importingText = LocalizedString.documentsImporting
+        static let loadingContentText = LocalizedString.documentsLoading
+        static let errorAlertTitle = LocalizedString.alertErrorTitle
     }
 
     struct ImportErrorWrapper: Identifiable {
@@ -242,6 +274,11 @@ struct ImportedDocumentsView_Previews: PreviewProvider {
                             createdAt: Date(), updatedAt: Date()),
                     ]
                 }
+                set {}
+            }
+            
+            override var loadingContent: Bool {
+                get { false }
                 set {}
             }
         }

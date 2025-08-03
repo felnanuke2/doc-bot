@@ -23,6 +23,7 @@ class ImportedDocumentsViewModel: ObservableObject {
     @Published var importError: Error?
     @Published var importProgress: Double = 0.0
     @Published public var documents: [ImportedDocument] = []
+    @Published var loadingContent: Bool = true
 
     init() {
         Task { [weak self] in
@@ -30,6 +31,7 @@ class ImportedDocumentsViewModel: ObservableObject {
             let docs = try! await importedDocumentsRepository.list()
             DispatchQueue.main.async {
                 self.documents = docs
+                self.loadingContent = false
             }
         }
     }

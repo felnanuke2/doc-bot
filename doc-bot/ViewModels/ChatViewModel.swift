@@ -22,26 +22,50 @@ class ChatViewModel: ObservableObject {
         any ImportedDocumentRepository
 
     @Injected(\.promptContextGenerator) private var promptContextGenerator: PromptContextGenerator
+    
+    @Injected(\.conversationRepository) private var conversationRepository: any ConversationRepository
+    
+    @Injected(\.conversationMessageRepository) private var conversationMessageRepository: any ConversationMessageRepository
+    
+    @Injected(\.subjectRepository) private var subjectRepository: SubjectRepository
 
-    @Published var conversation: PdfConversation
+    @Published var conversation: ChatConversation?
     @Published var newMessageText: String = ""
     @Published var isSending: Bool = false
-    @Published var messages: [PdfMessage] = []
+    @Published var messages: [ChatMessage] = []
     @Published var isProgressing: Bool = false
 
-    private var streamingAssistantMessage: PdfMessage?
+    private var streamingAssistantMessage: ChatMessage?
+    
+    private let documentId: UUID;
 
     private var cancellationToken: CancellationToken?
 
-    init(conversation: PdfConversation) {
+    init(conversation: ChatConversation?, documentId: UUID) {
         self.conversation = conversation
-        self.messages = conversation.messages
+        self.messages = conversation?.messages ?? []
+        self.documentId = documentId
+    }
+    
+    /// Switches to a different conversation
+    func switchToConversation(_ newConversation: ChatConversation?) {
+        // Cancel any ongoing operations
+        cancellationToken?.cancel()
+        
+        // Update the conversation and messages
+        conversation = newConversation
+        messages = newConversation?.messages ?? []
+        
+        // Reset state
+        streamingAssistantMessage = nil
+        isSending = false
+        isProgressing = false
+        newMessageText = ""
     }
     
     /// Clears all messages in the current conversation and resets state
     func clearChat() {
         cancellationToken?.cancel()
-        conversation.messages.removeAll()
         messages.removeAll()
         streamingAssistantMessage = nil
         isSending = false
@@ -52,23 +76,34 @@ class ChatViewModel: ObservableObject {
     func sendMessage() {
         let trimmed = newMessageText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        let userMessage = PdfMessage(
-            id: UUID(),
-            role: .user,
-            content: trimmed,
-            createdAt: Date(),
-            updatedAt: Date()
-        )
-        conversation.messages.append(userMessage)
-        messages.append(userMessage)
+        
         newMessageText = ""
         isSending = true
         cancellationToken?.cancel()
         cancellationToken = CancellationToken()
         isProgressing = false
-        let documentId = conversation.document.id!
+       
 
         Task {
+            // Ensure conversation exists before creating any messages
+            await createConversationIfNeeded()
+            
+            let userMessage = ChatMessage(
+                id: UUID(),
+                role: .user,
+                content: trimmed,
+                createdAt: Date(),
+                updatedAt: Date(),
+                conversation: conversation
+            )
+
+            await MainActor.run {
+                self.messages.append(userMessage)
+            }
+            
+            // Store the user message
+            await storeMessage(userMessage)
+            
             guard let chunks = await vectorStore.restoreEmbeddings(for: documentId) else {
                 print("Failed to load document embeddings")
                 return
@@ -76,16 +111,127 @@ class ChatViewModel: ObservableObject {
             let topK = await chunkEmbedder.searchRelevantChunk(for: trimmed, chunks: chunks, limit: 3)
             let prompt = promptContextGenerator.generateContext(
                 for: trimmed, with: topK.map{$0.content}.joined(separator: "\n"))
-            await handleCompletionStream(for: prompt, cancellationToken: cancellationToken!)
+            await handleCompletionStream(for: prompt, userMessage: userMessage, cancellationToken: cancellationToken!)
         }
     }
 
     func stopStreaming() {
         cancellationToken?.cancel()
     }
+    
+    /// Generates a subject for the current conversation based on its messages
+    func generateConversationSubject() async -> String? {
+        guard !messages.isEmpty else { return nil }
+        
+        do {
+            return try await subjectRepository.generateSubject(from: messages)
+        } catch {
+            print("Failed to generate conversation subject: \(error)")
+            return nil
+        }
+    }
+    
+    /// Assigns a subject to the conversation if it's the first assistant reply
+    private func assignSubjectIfFirstReply() async {
+        guard let currentConversation = conversation else { return }
+        
+        // Check if this is the first assistant reply (should have exactly 2 messages: 1 user, 1 assistant)
+        let assistantMessages = messages.filter { $0.role == .assistant }
+        guard assistantMessages.count == 1 else { return }
+        
+        // Only generate subject if conversation doesn't already have one
+        guard currentConversation.subject == nil || currentConversation.subject?.isEmpty == true else { return }
+        
+        do {
+            // Generate subject based on current messages
+            let subject = try await subjectRepository.generateSubject(from: messages)
+            if !subject.isEmpty {
+                // Update the conversation with the generated subject
+                let updatedConversation = ChatConversation(
+                    id: currentConversation.id,
+                    messages: currentConversation.messages,
+                    subject: subject,
+                    createdAt: currentConversation.createdAt,
+                    updatedAt: Date(),
+                    document: currentConversation.document
+                )
+                
+                // Update in repository
+                let savedConversation = try await conversationRepository.update(entity: updatedConversation)
+                
+                // Update local state
+                await MainActor.run {
+                    self.conversation = savedConversation
+                }
+            }
+        } catch {
+            print("Failed to assign subject to conversation: \(error)")
+        }
+    }
+
+    private func createConversationIfNeeded() async {
+        guard conversation == nil else { return }
+        
+        do {
+            // Get the document first
+            guard let document = try await importedDocumentsRepository.read(id: documentId) else {
+                print("Failed to find document with id: \(documentId)")
+                return
+            }
+            
+            let newConversation = ChatConversation(
+                id: UUID(),
+                messages: [],
+                createdAt: Date(),
+                updatedAt: Date(),
+                document: document
+            )
+            
+            let createdConversation = try await conversationRepository.create(entity: newConversation)
+            await MainActor.run {
+                self.conversation = createdConversation
+            }
+        } catch {
+            print("Failed to create conversation: \(error)")
+        }
+    }
+    
+    private func storeMessage(_ message: ChatMessage) async {
+        do {
+            // Ensure the message has the current conversation reference
+            guard let currentConversation = conversation else {
+                print("Cannot store message: no conversation available")
+                return
+            }
+            
+            // Create a message with the proper conversation reference
+            let messageWithConversation = ChatMessage(
+                id: message.id,
+                role: message.role,
+                content: message.content,
+                createdAt: message.createdAt,
+                updatedAt: message.updatedAt,
+                conversation: currentConversation
+            )
+            
+            // Store the message
+            try await conversationMessageRepository.create(entity: messageWithConversation)
+            
+            // Update the conversation's messages array
+            var updatedConversation = currentConversation
+            if !updatedConversation.messages.contains(where: { $0.id == messageWithConversation.id }) {
+                updatedConversation.messages.append(messageWithConversation)
+                await MainActor.run {
+                    self.conversation = updatedConversation
+                }
+            }
+        } catch {
+            print("Failed to store message: \(error)")
+        }
+    }
 
     private func handleCompletionStream(
-        for context: any ContextualPrompt, cancellationToken: CancellationToken
+        for context: any ContextualPrompt, userMessage: ChatMessage, cancellationToken: CancellationToken
     )
         async
     {
@@ -103,28 +249,30 @@ class ChatViewModel: ObservableObject {
                     Task { @MainActor in
                         self.isProgressing = true
                         if self.streamingAssistantMessage == nil {
-                            let assistantMessage = PdfMessage(
+                            let assistantMessage = ChatMessage(
                                 id: UUID(),
                                 role: .assistant,
                                 content: partial,
                                 createdAt: Date(),
-                                updatedAt: Date()
+                                updatedAt: Date(),
+                                conversation: self.conversation
                             )
                             self.streamingAssistantMessage = assistantMessage
                             self.messages.append(assistantMessage)
                         } else if let streaming = self.streamingAssistantMessage {
-                            let updatedStreaming = PdfMessage(
+                            let updatedStreaming = ChatMessage(
                                 id: streaming.id,
                                 role: streaming.role,
                                 content: streaming.content + partial,
                                 createdAt: streaming.createdAt,
-                                updatedAt: Date()
+                                updatedAt: Date(),
+                                conversation: self.conversation
                             )
                             self.streamingAssistantMessage = updatedStreaming
-                            if let idx = self.conversation.messages.lastIndex(where: {
+                            if let idx = self.conversation?.messages.lastIndex(where: {
                                 $0.id == updatedStreaming.id
                             }) {
-                                self.conversation.messages[idx] = updatedStreaming
+                                self.conversation?.messages[idx] = updatedStreaming
                             }
                             if let idx = self.messages.lastIndex(where: {
                                 $0.id == updatedStreaming.id
@@ -138,32 +286,44 @@ class ChatViewModel: ObservableObject {
                     Task { @MainActor in
                         self.isProgressing = false
                         if let streaming = self.streamingAssistantMessage {
-                            let finishedMessage = PdfMessage(
+                            let finishedMessage = ChatMessage(
                                 id: streaming.id,
                                 role: streaming.role,
                                 content: final,
                                 createdAt: streaming.createdAt,
-                                updatedAt: Date()
+                                updatedAt: Date(),
+                                conversation: self.conversation
                             )
-                            if let idx = self.conversation.messages.lastIndex(where: {
+                            if let idx = self.conversation?.messages.lastIndex(where: {
                                 $0.id == streaming.id
                             }) {
-                                self.conversation.messages[idx] = finishedMessage
+                                self.conversation?.messages[idx] = finishedMessage
                             }
                             if let idx = self.messages.lastIndex(where: { $0.id == streaming.id }) {
                                 self.messages[idx] = finishedMessage
                             }
+                            
+                            // Store the assistant message
+                            await self.storeMessage(finishedMessage)
                         } else {
-                            let assistantMessage = PdfMessage(
+                            let assistantMessage = ChatMessage(
                                 id: UUID(),
                                 role: .assistant,
                                 content: final,
                                 createdAt: Date(),
-                                updatedAt: Date()
+                                updatedAt: Date(),
+                                conversation: self.conversation
                             )
-                            self.conversation.messages.append(assistantMessage)
+                            self.conversation?.messages.append(assistantMessage)
                             self.messages.append(assistantMessage)
+                            
+                            // Store the assistant message
+                            await self.storeMessage(assistantMessage)
                         }
+                        
+                        // Generate and assign subject after first assistant reply
+                        await self.assignSubjectIfFirstReply()
+                        
                         self.streamingAssistantMessage = nil
                         self.isSending = false
                     }

@@ -23,9 +23,23 @@ struct doc_botApp: App {
 struct RootView: View {
     // Create the ModelManager as a StateObject to keep it alive.
     @StateObject private var modelManager = ModelManager.shared
+    @AppStorage("selectedTheme") private var selectedTheme: String = "system"
 
     var body: some View {
         // Pass the manager to the view hierarchy as an environment object.
-        ContentView().environmentObject(modelManager)
+        ContentView()
+            .environmentObject(modelManager)
+            .preferredColorScheme(colorScheme)
+    }
+    
+    private var colorScheme: ColorScheme? {
+        switch selectedTheme {
+        case "light":
+            return .light
+        case "dark":
+            return .dark
+        default:
+            return nil // System default
+        }
     }
 }

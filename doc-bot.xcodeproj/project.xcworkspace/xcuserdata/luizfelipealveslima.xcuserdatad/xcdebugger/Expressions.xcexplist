@@ -3,10 +3,26 @@
    version = "1.0">
    <ContextStates>
       <ContextState
+         contextName = "ConversationListItem.conversationPreview.getter:ConversationListItem.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "lastMessage.content.prefix(60)">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
          contextName = "CoreDataImportedDocumentRepository.create(entity:):CoreDataImportedDocumentRepository.swift">
          <PersistentStrings>
             <PersistentString
                value = "context">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "closure #3 in ChatViewModel.handleCompletionStream(for:userMessage:cancellationToken:):ChatViewModel.swift">
+         <PersistentStrings>
+            <PersistentString
+               value = "self.conversation">
             </PersistentString>
          </PersistentStrings>
       </ContextState>

@@ -18,13 +18,13 @@ struct ModelsView: View {
         NavigationView {
             List {
                 // Section for the currently active model
-                Section(header: Text("Active Model")) {
+                Section(header: Text(LocalizedString.modelsActiveTitle)) {
                     if let activeModel = modelManager.activeModel {
                         HStack {
                             VStack(alignment: .leading) {
                                 Text(activeModel.name)
                                     .font(.headline)
-                                Text("Ready to use")
+                                Text(LocalizedString.modelsReady)
                                     .font(.subheadline)
                                     .foregroundColor(.green)
                             }
@@ -35,21 +35,22 @@ struct ModelsView: View {
                                 Image(systemName: "trash")
                             }
                             .buttonStyle(.plain)
+                            .accessibilityLabel(LocalizedString.accessibilityDelete)
                         }
                     } else {
-                        Text("No model downloaded. Select one from the list below.")
+                        Text(LocalizedString.modelsNoModel)
                             .foregroundColor(.secondary)
                     }
                 }
                 
                 // Section for available models to download
-                Section(header: Text("Available Models")) {
+                Section(header: Text(LocalizedString.modelsAvailableTitle)) {
                     ForEach(modelManager.models) { model in
                         ModelRowView(model: model)
                     }
                 }
             }
-            .navigationTitle("Download Models")
+            .navigationTitle(LocalizedString.navModels)
         }
     }
 }
@@ -85,7 +86,7 @@ struct ModelRowView: View {
                                 ProgressView(value: progress)
                                     .progressViewStyle(.circular)
                                     .frame(width: 28, height: 28)
-                                Text(String(format: "%.0f%%", progress * 100))
+                                Text(LocalizedString.modelsProgress(progress))
                                     .font(.caption)
                             }
                         }
@@ -112,6 +113,7 @@ struct ModelRowView: View {
                 .font(.title2)
         }
         .buttonStyle(.borderless) // Use borderless to make it look like a simple icon button.
+        .accessibilityLabel(LocalizedString.accessibilityDownload)
     }
 }
 

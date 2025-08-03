@@ -1,0 +1,75 @@
+/* Navigation Titles */
+"nav.documents" = "Seus Documentos";
+"nav.models" = "Baixar Modelos";
+"nav.chat" = "Chat do Documento";
+"nav.configurations" = "Configurações";
+
+/* Tab Labels */
+"tab.import" = "Importar";
+"tab.models" = "Modelos";
+"tab.configurations" = "Configurações";
+
+/* Buttons */
+"button.import" = "Importar Documento";
+"button.ok" = "OK";
+"button.stop" = "Parar";
+"button.send" = "Enviar";
+"button.cancel" = "Cancelar";
+"button.dismiss" = "Dispensar";
+
+/* Documents View */
+"documents.empty.title" = "Ainda Não Há Documentos";
+"documents.empty.subtitle" = "Toque no ícone '+' para importar um novo documento PDF.";
+"documents.importing" = "Importando documento...";
+"documents.loading" = "Carregando documentos...";
+"documents.untitled" = "Documento Sem Título";
+"documents.conversations.count" = "Conversas: %d";
+
+/* Models View */
+"models.active.title" = "Modelo Ativo";
+"models.available.title" = "Modelos Disponíveis";
+"models.no.model" = "Nenhum modelo foi baixado. Selecione um da lista abaixo.";
+"models.ready" = "Pronto para usar";
+"models.progress.format" = "%.0f%%";
+
+/* Model Loading */
+"model.initializing" = "Inicializando...";
+"model.downloading" = "Baixando Modelo de IA...";
+"model.download.failed" = "Download Falhou";
+"model.download.complete" = "Download Completo!";
+
+/* Chat */
+"chat.welcome" = "Olá! Estou aqui para ajudá-lo a entender este documento. O que gostaria de saber?";
+"chat.typing" = "O assistente está digitando...";
+"chat.placeholder" = "Pergunte sobre o documento...";
+
+/* Conversations */
+"conversation.delete" = "Excluir";
+"conversation.delete.title" = "Excluir Conversa";
+"conversation.delete.message" = "Tem certeza de que quer excluir esta conversa? Esta ação não pode ser desfeita.";
+"conversation.new" = "Nova Conversa";
+"conversation.no.messages" = "Ainda não há mensagens";
+"conversations.title" = "Conversas";
+"conversations.new.chat" = "Novo Chat";
+"conversations.loading" = "Carregando conversas...";
+"conversations.empty.title" = "Ainda não há conversas";
+"conversations.empty.subtitle" = "Inicie uma nova conversa para começar a conversar sobre este documento";
+
+/* Alerts */
+"alert.error.title" = "Erro de Importação";
+"alert.error.message" = "Erro ao importar o documento. Por favor, tente novamente.";
+
+/* Accessibility */
+"accessibility.delete" = "Excluir";
+"accessibility.download" = "Baixar";
+"accessibility.sidebar" = "Alternar Barra Lateral";
+
+/* Languages */
+"languages.section.title" = "Idiomas Disponíveis";
+"languages.footer.note" = "Pode ser necessário reiniciar o aplicativo para que a mudança de idioma tenha efeito completo.";
+
+/* Theme */
+"theme.section.title" = "Aparência";
+"theme.light" = "Claro";
+"theme.dark" = "Escuro";
+"theme.system" = "Sistema";
