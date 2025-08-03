@@ -32,22 +32,10 @@ jobs:
           -derivedDataPath ./build \
           clean test
     
-    - name: Generate Coverage Report
-      run: |
-        xcrun xccov view --report --json ./build/Logs/Test/*.xcresult > coverage.json
-        
-    - name: Convert Coverage to Cobertura
-      run: |
-        # Create virtual environment and install xccov-to-cobertura-xml
-        python3 -m venv venv
-        source venv/bin/activate
-        pip install xccov-to-cobertura-xml
-        xccov-to-cobertura-xml coverage.json > coverage.xml
-    
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
-        file: ./coverage.xml
+        files: ./build/Logs/Test/*.xcresult
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: false
