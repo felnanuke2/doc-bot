@@ -1,0 +1,38 @@
+# Slather configuration for doc-bot project
+coverage_service: cobertura_xml
+xcodeproj: doc-bot.xcodeproj
+scheme: doc-bot
+output_directory: .
+source_directory: .
+
+# Files and directories to ignore from coverage
+ignore:
+  - "Pods/*"
+  - "Tests/*"
+  - "**/*Tests*"
+  - "**/*Test*"
+  - "**/AppDelegate.swift"
+  - "**/SceneDelegate.swift"
+  - "**/*.generated.swift"
+  - "**/*.pb.swift"
+  - "**/Generated/*"
+  - "**/Frameworks/*"
+  - "**/External/*"
+  - "**/ThirdParty/*"
+  - "**/*+CoreDataClass.swift"
+  - "**/*+CoreDataProperties.swift"
+
+# Only include these file types
+include_files:
+  - "*.swift"
+  - "*.m"
+  - "*.mm"
+
+# Minimum coverage percentage (optional)
+# minimum_coverage: 80
+
+# Show individual file coverage in output
+show_file_coverage: true
+
+# Fail if coverage is below minimum (optional)
+# fail_on_minimum_coverage: false
