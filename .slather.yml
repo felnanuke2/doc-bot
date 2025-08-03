@@ -3,11 +3,10 @@ coverage_service: cobertura_xml
 xcodeproj: doc-bot.xcodeproj
 scheme: doc-bot
 configuration: Debug
-test_target: doc-botTests
-output_directory: .
-build_directory: ./build/Build/Products/Variant-NoSanitizers/Debug-iphonesimulator
+source_directory: ./doc-bot
 binary_basename: doc-bot
-source_directory: .
+build_directory: ./build
+output_directory: .
 ignore:
   - "doc-botTests/*"
   - "doc-botUITests/*"
