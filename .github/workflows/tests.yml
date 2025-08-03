@@ -30,13 +30,38 @@ jobs:
           -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
           -enableCodeCoverage YES \
           -derivedDataPath ./build \
+          -only-testing:doc-botTests/ImportedDocumentsViewModelTests \
           clean test
+    
+    - name: Generate Coverage Report
+      run: |
+        # Find the xcresult bundle
+        XCRESULT_PATH=$(find ./build -name "*.xcresult" | head -1)
+        echo "Found xcresult at: $XCRESULT_PATH"
+        
+        if [ -n "$XCRESULT_PATH" ]; then
+          # Generate coverage report in JSON format
+          xcrun xccov view --report --json "$XCRESULT_PATH" > coverage.json
+          echo "Generated coverage.json"
+          
+          # Also generate human-readable coverage report
+          xcrun xccov view --report "$XCRESULT_PATH" > coverage.txt
+          echo "Generated coverage.txt"
+          
+          # List files for debugging
+          echo "Files in build directory:"
+          find ./build -name "*.xccovreport" -o -name "*.xccovarchive" -o -name "*.xcresult"
+        else
+          echo "No xcresult file found"
+          exit 1
+        fi
     
     - name: Upload Coverage to Codecov
       uses: codecov/codecov-action@v4
       with:
-        files: ./build/Logs/Test/*.xcresult
+        file: coverage.json
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: false
         token: ${{ secrets.CODECOV_TOKEN }}
+        verbose: true
