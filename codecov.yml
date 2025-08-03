@@ -1,0 +1,23 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: auto
+        threshold: 1%
+
+ignore:
+  - "doc-botTests/**"
+  - "doc-botUITests/**" 
+  - "build/**"
+  - "LlamaCpp/**"
+  - "**/*Tests*"
+  - "**/*Test*"
+
+comment:
+  layout: "reach,diff,flags,tree"
+  behavior: default
+  require_changes: false

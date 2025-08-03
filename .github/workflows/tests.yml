@@ -20,39 +20,20 @@ jobs:
         with:
           xcode-version: '16.4'
           
-      - name: Run Tests with Coverage
+      - name: Build and Test with Coverage
         run: |
-          xcodebuild \
+          xcodebuild test \
             -project doc-bot.xcodeproj \
             -scheme doc-bot \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
             -enableCodeCoverage YES \
             -only-testing:doc-botTests \
-            -derivedDataPath ./build \
-            clean test
-            
-      - name: Install Slather
-        run: gem install slather
-          
-      - name: Generate Coverage Report
-        run: |
-          # Generate coverage report using slather with .slather.yml config
-          slather
-          
-          # Verify output file was created
-          if [ -f "cobertura.xml" ]; then
-            echo "Coverage report generated successfully"
-            ls -la cobertura.xml
-          else
-            echo "ERROR: Coverage report not generated"
-            exit 1
-          fi
+            clean build test
           
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           name: codecov-umbrella
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./cobertura.xml
           fail_ci_if_error: false
           verbose: true
