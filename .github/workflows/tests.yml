@@ -30,7 +30,6 @@ jobs:
           -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
           -enableCodeCoverage YES \
           -derivedDataPath ./build \
-          -only-testing:doc-botTests/ImportedDocumentsViewModelTests \
           clean test
     
     - name: Generate Coverage Report

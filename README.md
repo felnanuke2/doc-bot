@@ -2,6 +2,8 @@
 
 # doc-bot
 
+[![codecov](https://codecov.io/gh/felnanuke2/doc-bot/branch/main/graph/badge.svg?token=X0TTQ56D6H)](https://codecov.io/gh/felnanuke2/doc-bot)
+
 ## Overview
 
 doc-bot is a fully offline Retrieval-Augmented Generation (RAG) app targeting iOS and iPadOS. The goal is to let you chat with your own PDF documents using AI, with all processing done locally and only using downloaded models—no internet connection or cloud APIs required. The app uses SwiftUI as its interface builder for a modern, native experience. Import a PDF, ask questions, and get answers powered by local language models and embeddings.
