@@ -38,10 +38,10 @@ jobs:
         
     - name: Convert Coverage to Cobertura
       run: |
-        # Install xccov-to-cobertura-xml if not available
-        if ! command -v xccov-to-cobertura-xml &> /dev/null; then
-          pip3 install xccov-to-cobertura-xml
-        fi
+        # Create virtual environment and install xccov-to-cobertura-xml
+        python3 -m venv venv
+        source venv/bin/activate
+        pip install xccov-to-cobertura-xml
         xccov-to-cobertura-xml coverage.json > coverage.xml
     
     - name: Upload Coverage to Codecov
