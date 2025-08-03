@@ -42,11 +42,11 @@ jobs:
           find ./build -name "doc-bot" -type f || echo "No doc-bot binary found"
           find ./build -name "*.app" || echo "No .app found"
           
-          # Generate coverage report
+          # Generate coverage report with correct binary path
           slather coverage --cobertura-xml \
                           --scheme doc-bot \
                           --build-directory ./build \
-                          --binary-basename doc-bot \
+                          --binary-file ./build/Build/Products/Variant-NoSanitizers/Debug-iphonesimulator/doc-bot.app/doc-bot \
                           doc-bot.xcodeproj
                           
           # Verify output file was created
