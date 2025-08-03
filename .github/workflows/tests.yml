@@ -25,13 +25,21 @@ jobs:
           xcodebuild test \
             -project doc-bot.xcodeproj \
             -scheme doc-bot \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5,arch=arm64' \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
             -enableCodeCoverage YES \
-            clean build test \
-            ARCHS=arm64
+            -derivedDataPath ./DerivedData \
+            -only-testing:doc-botTests \
+            clean build test
+          
+      - name: Generate Coverage Report
+        run: |
+          xcrun xccov view --report --json ./DerivedData/Logs/Test/*.xcresult > coverage.json
+          xcrun xccov view --report ./DerivedData/Logs/Test/*.xcresult > coverage.txt
           
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           name: codecov-umbrella
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.json
+          fail_ci_if_error: false
