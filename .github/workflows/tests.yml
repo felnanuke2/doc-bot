@@ -36,5 +36,3 @@ jobs:
         with:
           name: codecov-umbrella
           token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: false
-          verbose: true
