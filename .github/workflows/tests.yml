@@ -36,19 +36,9 @@ jobs:
           
       - name: Generate Coverage Report
         run: |
-          # Debug: Show build directory structure
-          echo "Build directory structure:"
-          find ./build -type d -name "*ProfileData*" || echo "No ProfileData found"
-          find ./build -name "doc-bot" -type f || echo "No doc-bot binary found"
-          find ./build -name "*.app" || echo "No .app found"
+          # Generate coverage report using slather with .slather.yml config
+          slather
           
-          # Generate coverage report
-          slather coverage --cobertura-xml \
-                          --scheme doc-bot \
-                          --build-directory ./build/Build \
-                          --binary-file ./build/Build/Products/Variant-NoSanitizers/Debug-iphonesimulator/doc-bot.app/doc-bot \
-                          doc-bot.xcodeproj
-                          
           # Verify output file was created
           if [ -f "cobertura.xml" ]; then
             echo "Coverage report generated successfully"
