@@ -1,10 +1,12 @@
 # .slather.yml
-
 coverage_service: cobertura_xml
 xcodeproj: doc-bot.xcodeproj
 scheme: doc-bot
+configuration: Debug
 output_directory: .
 build_directory: ./build
+binary_basename: doc-bot
+source_directory: .
 ignore:
   - "doc-botTests/*"
   - "doc-botUITests/*"
