@@ -27,7 +27,7 @@ jobs:
         xcodebuild \
           -project doc-bot.xcodeproj \
           -scheme doc-bot \
-          -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+          -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
           -enableCodeCoverage YES \
           -derivedDataPath ./build \
           clean test

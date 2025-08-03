@@ -14,9 +14,7 @@ class ImportedDocumentsViewModel: ObservableObject {
     @Injected(\.completionRepository) private var completionRepository: CompletionRepository
     @Injected(\.modelDownloaderRepository) private var modelDownloaderRepository:
         ModelDownloaderRepository
-
-    private lazy var importedDocumentsRepository: any ImportedDocumentRepository = Container.shared
-        .importedDocumentRepository()
+    @Injected(\.importedDocumentRepository) private var importedDocumentsRepository: any ImportedDocumentRepository
 
     // Published properties for UI binding
     @Published var isImporting: Bool = false
@@ -28,43 +26,73 @@ class ImportedDocumentsViewModel: ObservableObject {
     init() {
         Task { [weak self] in
             guard let self = self else { return }
-            let docs = try! await importedDocumentsRepository.list()
-            DispatchQueue.main.async {
-                self.documents = docs
-                self.loadingContent = false
+            do {
+                let docs = try await importedDocumentsRepository.list()
+                await MainActor.run {
+                    self.documents = docs
+                    self.loadingContent = false
+                }
+            } catch {
+                await MainActor.run {
+                    self.documents = []
+                    self.loadingContent = false
+                }
             }
         }
     }
 
     /// Import document flow: generates chunks, embeds, and stores them
     func importDocument(from fileURL: URL) async {
-               DispatchQueue.main.async {
-                   self.isImporting = true
-                   self.importError = nil
-                   self.importProgress = 0.0
-               }
+        await MainActor.run {
+            self.isImporting = true
+            self.importError = nil
+            self.importProgress = 0.0
+        }
 
-               let text = await documentContentExtractor.extractContent(from: fileURL) ?? ""
-        let docId = UUID()
-               let chunks = await chunkGenerator.generateChunks(documentID: docId, from: text)
-               let total = Double(chunks.count)
-        let embedded = await chunkEmbedder.embed(chunks: chunks)
-              _ = await vectorStore.store(embedded: embedded, for: docId)
+        do {
+            let text = await documentContentExtractor.extractContent(from: fileURL) ?? ""
+            let docId = UUID()
+            
+            await MainActor.run {
+                self.importProgress = 0.25
+            }
+            
+            let chunks = await chunkGenerator.generateChunks(documentID: docId, from: text)
+            
+            await MainActor.run {
+                self.importProgress = 0.5
+            }
+            
+            let embedded = await chunkEmbedder.embed(chunks: chunks)
+            
+            await MainActor.run {
+                self.importProgress = 0.75
+            }
+            
+            await vectorStore.store(embedded: embedded, for: docId)
                
-        let now = Date()
-        let importedDocument = ImportedDocument(
-            id: docId,
-            name: fileURL.lastPathComponent,
-            conversations: [],
-            createdAt: now,
-            updatedAt: now
-        )
-        _ = try! await importedDocumentsRepository.create(entity: importedDocument)
+            let now = Date()
+            let importedDocument = ImportedDocument(
+                id: docId,
+                name: fileURL.lastPathComponent,
+                conversations: [],
+                createdAt: now,
+                updatedAt: now
+            )
+            
+            let createdDocument = try await importedDocumentsRepository.create(entity: importedDocument)
 
-        DispatchQueue.main.async {
-            self.isImporting = false
-            // Append the new document to the documents array to update the view state
-            self.documents.append(importedDocument)
+            await MainActor.run {
+                self.isImporting = false
+                self.importProgress = 0.0
+                self.documents.append(createdDocument)
+            }
+        } catch {
+            await MainActor.run {
+                self.isImporting = false
+                self.importProgress = 0.0
+                self.importError = error
+            }
         }
     }
 }
