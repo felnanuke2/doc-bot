@@ -1,0 +1,52 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Run All Tests
+    runs-on: macos-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    
+    - name: Select Xcode
+      run: sudo xcode-select -s /Applications/Xcode_15.0.app/Contents/Developer
+    
+    - name: Run Tests with Coverage
+      run: |
+        xcodebuild \
+          -project doc-bot.xcodeproj \
+          -scheme doc-bot \
+          -destination 'platform=iOS Simulator,name=iPhone 15,OS=latest' \
+          -enableCodeCoverage YES \
+          -derivedDataPath ./build \
+          clean test
+    
+    - name: Generate Coverage Report
+      run: |
+        xcrun xccov view --report --json ./build/Logs/Test/*.xcresult > coverage.json
+        
+    - name: Convert Coverage to Cobertura
+      run: |
+        # Install xccov-to-cobertura-xml if not available
+        if ! command -v xccov-to-cobertura-xml &> /dev/null; then
+          pip3 install xccov-to-cobertura-xml
+        fi
+        xccov-to-cobertura-xml coverage.json > coverage.xml
+    
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+        fail_ci_if_error: false
+        token: ${{ secrets.CODECOV_TOKEN }}
