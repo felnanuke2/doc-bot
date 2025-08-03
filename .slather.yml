@@ -4,6 +4,7 @@ xcodeproj: doc-bot.xcodeproj
 scheme: doc-bot
 output_directory: .
 source_directory: .
+build_directory: ./build
 
 # Files and directories to ignore from coverage
 ignore:

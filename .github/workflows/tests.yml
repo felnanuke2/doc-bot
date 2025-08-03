@@ -32,26 +32,11 @@ jobs:
             
       - name: Install Slather
         run: gem install slather
-
-      - name: Setup Slather Configuration
-        run: |
-          cat > .slather.yml << EOF
-          coverage_service: cobertura_xml
-          xcodeproj: doc-bot.xcodeproj
-          scheme: doc-bot
-          output_directory: .
-          ignore:
-            - "Pods/*"
-            - "Tests/*"
-            - "**/*Tests*"
-          EOF
           
       - name: Generate Coverage Report
         run: |
           slather coverage --cobertura-xml \
-                          --output-directory . \
                           --scheme doc-bot \
-                          --build-directory ./build \
                           doc-bot.xcodeproj
           
       - name: Upload Coverage to Codecov
