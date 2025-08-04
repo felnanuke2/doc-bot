@@ -1,17 +1,40 @@
-# Name of the coverage service or report format
-coverage_service: cobertura_xml
-# The Xcode project file
+# Slather Configuration
+# Coverage tool configuration for doc-bot iOS project
+
+# Project settings
 xcodeproj: doc-bot.xcodeproj
-# The scheme to use for testing
 scheme: doc-bot
-# The output directory for the report
-output_directory: reports
-# Build directory (for CI environments)
-build_directory: build
-# Configuration to use
+workspace: doc-bot.xcodeproj
+
+# Output configuration
+output_directory: ./build/reports
+coverage_service: cobertura_xml
+cobertura_xml: true
+
+# Coverage settings
+arch: x86_64
 configuration: Debug
-# List of files or directories to ignore
+
+# Build directory for derived data
+build_directory: ./build/DerivedData
+
+# Ignore patterns - exclude test files, external dependencies, and resources
 ignore:
-  - "Pods/*"
+  - "../**/Pods/*"
+  - "**/Pods/*"
+  - "**/*Tests*"
+  - "**/*Test*"
+  - "**/build/*"
+  - "**/LlamaCpp/*"
+  - "**/Resources/*"
+  - "**/Assets.xcassets/*"
+  - "**/DerivedData/*"
+  - "**/Preview Content/*"
   - "doc-botTests/*"
   - "doc-botUITests/*"
+
+# Include only source files from main target
+source_directory: doc-bot/
+
+# Binary basename (matches your app target)
+binary_basename: doc-bot
