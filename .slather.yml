@@ -6,6 +6,10 @@ xcodeproj: doc-bot.xcodeproj
 scheme: doc-bot
 # The output directory for the report
 output_directory: reports
+# Build directory (for CI environments)
+build_directory: build
+# Configuration to use
+configuration: Debug
 # List of files or directories to ignore
 ignore:
   - "Pods/*"
