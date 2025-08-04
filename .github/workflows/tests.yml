@@ -25,11 +25,11 @@ jobs:
           xcodebuild test \
             -project doc-bot.xcodeproj \
             -scheme doc-bot \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5,arch=arm64' \
             -enableCodeCoverage YES \
-            -derivedDataPath ./DerivedData \
             -only-testing:doc-botTests \
-            clean build test
+            clean build test \
+            ARCHS=arm64
           
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v4
