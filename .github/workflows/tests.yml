@@ -29,19 +29,23 @@ jobs:
         with:
           xcode-version: '16.2'
 
-      # 4. Run tests and generate coverage data
+      # 4. List available simulators (for debugging)
+      - name: List available simulators
+        run: xcrun simctl list devices available
+
+      # 5. Run tests and generate coverage data
       - name: Run tests
         run: |
           xcodebuild test \
             -project doc-bot.xcodeproj \
             -scheme doc-bot \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+            -destination 'platform=iOS Simulator,name=iPhone 15' \
             -configuration Debug \
             -derivedDataPath build \
             -enableCodeCoverage YES \
             clean test | bundle exec xcpretty
 
-      # 5. Debug build directory (optional)
+      # 6. Debug build directory (optional)
       - name: Debug build directory
         run: |
           echo "Build directory contents:"
@@ -49,17 +53,22 @@ jobs:
           find build -type f -name "*.xcresult" 2>/dev/null || echo "No .xcresult files found"
           ls -la build/ 2>/dev/null || echo "Build directory not found"
 
-      # 6. Run Slather to generate coverage report
+      # 7. Run Slather to generate coverage report
       - name: Generate coverage report
         run: |
-          bundle exec slather coverage \
-            --cobertura-xml \
-            --output-directory reports \
-            --build-directory build \
-            --scheme doc-bot \
-            doc-bot.xcodeproj
+          if [ -d "build" ] && find build -name "*.profdata" -print -quit | grep -q .; then
+            bundle exec slather coverage \
+              --cobertura-xml \
+              --output-directory reports \
+              --build-directory build \
+              --scheme doc-bot \
+              doc-bot.xcodeproj
+          else
+            echo "No coverage data found. Tests may have failed or coverage was not generated."
+            exit 1
+          fi
 
-      # 7. Upload coverage to Codecov
+      # 8. Upload coverage to Codecov
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
@@ -69,7 +78,7 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
-      # 8. Upload coverage report artifact
+      # 9. Upload coverage report artifact
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
