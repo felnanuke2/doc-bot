@@ -10,7 +10,6 @@ coverage:
         threshold: 1%
 
 ignore:
-  - "doc-botUITests/**" 
   - "build/**"
   - "LlamaCpp/**"
   - "**/*Tests*"

@@ -31,15 +31,10 @@ jobs:
             -only-testing:doc-botTests \
             clean build test
           
-      - name: Generate Coverage Report
-        run: |
-          xcrun xccov view --report --json ./DerivedData/Logs/Test/*.xcresult > coverage.json
-          xcrun xccov view --report ./DerivedData/Logs/Test/*.xcresult > coverage.txt
-          
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
           name: codecov-umbrella
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./coverage.json
+          files: ./DerivedData/Logs/Test/*.xcresult
           fail_ci_if_error: false
