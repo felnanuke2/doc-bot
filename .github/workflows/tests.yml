@@ -31,6 +31,10 @@ jobs:
             -derivedDataPath ./build \
             clean test
             
+          # List what was built for debugging
+          echo "Built products:"
+          find ./build -name "*.app" -o -name "*Tests*" -type f | head -10
+            
       - name: Extract Coverage Data
         run: |
           # Find the coverage profdata file
@@ -40,16 +44,26 @@ jobs:
             exit 1
           fi
           
-          # Find the test binary
-          TEST_BINARY=$(find ./build -name "*Tests" -type f | head -1)
-          if [ -z "$TEST_BINARY" ]; then
-            echo "No test binary found"
+          # Find the app binary (the actual code we want to measure coverage for)
+          APP_BINARY=$(find ./build -name "doc-bot" -path "*/Products/Debug-iphonesimulator/*.app/doc-bot" | head -1)
+          if [ -z "$APP_BINARY" ]; then
+            echo "No app binary found, trying alternative paths..."
+            APP_BINARY=$(find ./build -name "doc-bot" -type f -not -path "*Tests*" | head -1)
+          fi
+          
+          if [ -z "$APP_BINARY" ]; then
+            echo "No app binary found"
+            echo "Available binaries:"
+            find ./build -type f -name "*" | grep -E "(doc-bot|Tests)" | head -10
             exit 1
           fi
           
-          # Generate coverage report
+          echo "Using app binary: $APP_BINARY"
+          echo "Using profdata: $PROFDATA_FILE"
+          
+          # Generate coverage report for the app binary
           xcrun llvm-cov show \
-            "$TEST_BINARY" \
+            "$APP_BINARY" \
             -instr-profile="$PROFDATA_FILE" \
             -format=html \
             -output-dir=./coverage-html \
@@ -58,7 +72,7 @@ jobs:
             
           # Generate JSON coverage report for badge generation
           xcrun llvm-cov export \
-            "$TEST_BINARY" \
+            "$APP_BINARY" \
             -instr-profile="$PROFDATA_FILE" \
             -format=text > ./coverage.json
             
@@ -66,9 +80,15 @@ jobs:
         run: |
           # Extract coverage percentage from JSON
           if [ -f "./coverage.json" ]; then
+            # Find the app binary again for coverage report
+            APP_BINARY=$(find ./build -name "doc-bot" -path "*/Products/Debug-iphonesimulator/*.app/doc-bot" | head -1)
+            if [ -z "$APP_BINARY" ]; then
+              APP_BINARY=$(find ./build -name "doc-bot" -type f -not -path "*Tests*" | head -1)
+            fi
+            
             # Parse coverage percentage from llvm-cov output
             COVERAGE=$(xcrun llvm-cov report \
-              $(find ./build -name "*Tests" -type f | head -1) \
+              "$APP_BINARY" \
               -instr-profile=$(find ./build -name "*.profdata" | head -1) \
               | tail -1 | awk '{print $4}' | sed 's/%//')
               
