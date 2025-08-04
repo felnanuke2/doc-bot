@@ -22,30 +22,27 @@ jobs:
           
       - name: Build and Test with Coverage
         run: |
-          xcodebuild test \
+          xcodebuild \
             -project doc-bot.xcodeproj \
             -scheme doc-bot \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5,arch=arm64' \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
             -enableCodeCoverage YES \
             -only-testing:doc-botTests \
+            -resultBundlePath TestResults.xcresult \
             clean build test \
+            ONLY_ACTIVE_ARCH=YES \
+            EXCLUDED_ARCHS="x86_64" \
             ARCHS=arm64
           
       - name: Convert Coverage to JSON
         run: |
           mkdir -p coverage
-          # Find the most recent .xcresult bundle
-          XCRESULT_PATH=$(find ~/Library/Developer/Xcode/DerivedData -name "*.xcresult" -type d | head -1)
-          if [ -z "$XCRESULT_PATH" ]; then
-            echo "No .xcresult found, checking build directory..."
-            XCRESULT_PATH=$(find ./build -name "*.xcresult" -type d | head -1)
-          fi
-          if [ -n "$XCRESULT_PATH" ]; then
-            echo "Converting coverage from: $XCRESULT_PATH"
-            xcrun xccov view --report --json "$XCRESULT_PATH" > coverage/coverage.json
+          if [ -d "TestResults.xcresult" ]; then
+            echo "Converting coverage from: TestResults.xcresult"
+            xcrun xccov view --report --json TestResults.xcresult > coverage/coverage.json
             echo "Coverage report generated at coverage/coverage.json"
           else
-            echo "Error: No .xcresult bundle found"
+            echo "Error: TestResults.xcresult not found"
             exit 1
           fi
           
