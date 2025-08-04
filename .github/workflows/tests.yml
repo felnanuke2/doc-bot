@@ -27,14 +27,14 @@ jobs:
       - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '16.4'
+          xcode-version: '16.2'
 
       # 4. Run tests and generate coverage data
       - name: Run tests
         run: |
           xcodebuild test \
             -project doc-bot.xcodeproj \
-            -scheme YourSchemeName \
+            -scheme doc-bot \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.4' \
             -enableCodeCoverage YES \
             clean test | xcpretty
