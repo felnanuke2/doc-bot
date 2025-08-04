@@ -35,9 +35,9 @@ jobs:
           xcodebuild test \
             -project doc-bot.xcodeproj \
             -scheme doc-bot \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.4' \
+            -destination 'platform=iOS Simulator,name=iPhone 16' \
             -enableCodeCoverage YES \
-            clean test | xcpretty
+            clean test | bundle exec xcpretty
 
       # 5. Run Slather to generate coverage report
       - name: Generate coverage report
