@@ -1,0 +1,160 @@
+name: Tests
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  test:
+    name: Run All Tests
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          
+      - name: Setup Xcode
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: '16.4'
+          
+      - name: Run Tests with Coverage
+        run: |
+          xcodebuild \
+            -project doc-bot.xcodeproj \
+            -scheme doc-bot \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
+            -enableCodeCoverage YES \
+            -only-testing:doc-botTests \
+            -derivedDataPath ./build \
+            clean test
+            
+      - name: Extract Coverage Data
+        run: |
+          # Find the coverage profdata file
+          PROFDATA_FILE=$(find ./build -name "*.profdata" | head -1)
+          if [ -z "$PROFDATA_FILE" ]; then
+            echo "No coverage data found"
+            exit 1
+          fi
+          
+          # Find the test binary
+          TEST_BINARY=$(find ./build -name "*Tests" -type f | head -1)
+          if [ -z "$TEST_BINARY" ]; then
+            echo "No test binary found"
+            exit 1
+          fi
+          
+          # Generate coverage report
+          xcrun llvm-cov show \
+            "$TEST_BINARY" \
+            -instr-profile="$PROFDATA_FILE" \
+            -format=html \
+            -output-dir=./coverage-html \
+            -show-line-counts \
+            -show-regions
+            
+          # Generate JSON coverage report for badge generation
+          xcrun llvm-cov export \
+            "$TEST_BINARY" \
+            -instr-profile="$PROFDATA_FILE" \
+            -format=text > ./coverage.json
+            
+      - name: Generate Coverage Badge and Summary
+        run: |
+          # Extract coverage percentage from JSON
+          if [ -f "./coverage.json" ]; then
+            # Parse coverage percentage from llvm-cov output
+            COVERAGE=$(xcrun llvm-cov report \
+              $(find ./build -name "*Tests" -type f | head -1) \
+              -instr-profile=$(find ./build -name "*.profdata" | head -1) \
+              | tail -1 | awk '{print $4}' | sed 's/%//')
+              
+            if [ -z "$COVERAGE" ]; then
+              COVERAGE="0"
+            fi
+            
+            echo "Coverage: ${COVERAGE}%"
+            echo "COVERAGE_PERCENTAGE=${COVERAGE}" >> $GITHUB_ENV
+            
+            # Generate coverage summary
+            echo "# Test Coverage Report" > coverage-summary.md
+            echo "" >> coverage-summary.md
+            echo "**Coverage: ${COVERAGE}%**" >> coverage-summary.md
+            echo "" >> coverage-summary.md
+            echo "Generated on: $(date)" >> coverage-summary.md
+            
+            # Create a simple coverage badge SVG
+            mkdir -p badges
+            cat > badges/coverage.svg << EOF
+          <svg xmlns="http://www.w3.org/2000/svg" width="104" height="20">
+            <linearGradient id="b" x2="0" y2="100%">
+              <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
+              <stop offset="1" stop-opacity=".1"/>
+            </linearGradient>
+            <clipPath id="a">
+              <rect width="104" height="20" rx="3" fill="#fff"/>
+            </clipPath>
+            <g clip-path="url(#a)">
+              <path fill="#555" d="M0 0h63v20H0z"/>
+              <path fill="$(if [ $(echo "$COVERAGE >= 80" | bc -l) -eq 1 ]; then echo "#4c1"; elif [ $(echo "$COVERAGE >= 60" | bc -l) -eq 1 ]; then echo "#dfb317"; else echo "#e05d44"; fi)" d="M63 0h41v20H63z"/>
+              <path fill="url(#b)" d="M0 0h104v20H0z"/>
+            </g>
+            <g fill="#fff" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="110">
+              <text x="325" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="530">coverage</text>
+              <text x="325" y="140" transform="scale(.1)" textLength="530">coverage</text>
+              <text x="825" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="310">${COVERAGE}%</text>
+              <text x="825" y="140" transform="scale(.1)" textLength="310">${COVERAGE}%</text>
+            </g>
+          </svg>
+          EOF
+          else
+            echo "No coverage data available"
+            echo "COVERAGE_PERCENTAGE=0" >> $GITHUB_ENV
+          fi
+          
+      - name: Upload Coverage Reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-reports
+          path: |
+            ./coverage-html
+            ./coverage.json
+            ./coverage-summary.md
+            ./badges/coverage.svg
+          retention-days: 30
+          
+      - name: Upload Coverage to Codecov
+        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+        with:
+          files: ./coverage.json
+          fail_ci_if_error: false
+          verbose: true
+          
+      - name: Comment Coverage Summary
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const coverage = process.env.COVERAGE_PERCENTAGE;
+            
+            const comment = `## 📊 Test Coverage Report
+            
+            **Coverage: ${coverage}%**
+            
+            ${coverage >= 80 ? '✅ Great coverage!' : coverage >= 60 ? '⚠️ Moderate coverage' : '❌ Low coverage - consider adding more tests'}
+            
+            📁 [View detailed coverage report](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})
+            `;
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
