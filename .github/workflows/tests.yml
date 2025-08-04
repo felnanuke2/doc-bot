@@ -1,6 +1,4 @@
 name: CI & Code Coverage
-
-# Controls when the workflow will run
 on:
   push:
     branches: [ main ]
@@ -39,7 +37,7 @@ jobs:
           xcodebuild test \
             -project doc-bot.xcodeproj \
             -scheme doc-bot \
-            -destination 'platform=iOS Simulator,name=iPhone 16' \
+                        -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.2' \
             -configuration Debug \
             -derivedDataPath build \
             -enableCodeCoverage YES \
