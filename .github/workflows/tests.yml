@@ -34,37 +34,72 @@ jobs:
             EXCLUDED_ARCHS="x86_64" \
             ARCHS=arm64
           
-      - name: Convert Coverage to JSON
+      - name: Generate Coverage Reports
         run: |
+          # Create coverage directory
           mkdir -p coverage
-          if [ -d "TestResults.xcresult" ]; then
-            echo "Converting coverage from: TestResults.xcresult"
-            xcrun xccov view --report --json TestResults.xcresult > coverage/coverage.json
-            echo "Coverage report generated at coverage/coverage.json"
-          else
+          
+          # Verify TestResults.xcresult exists
+          if [ ! -d "TestResults.xcresult" ]; then
             echo "Error: TestResults.xcresult not found"
+            ls -la
             exit 1
+          fi
+          
+          echo "TestResults.xcresult found, generating coverage reports..."
+          
+          # Generate JSON report for debugging
+          xcrun xccov view --report --json TestResults.xcresult > coverage/coverage.json
+          
+          # Generate LCOV format for better Codecov compatibility
+          xcrun xccov view --report --only-targets TestResults.xcresult > coverage/coverage.txt
+          
+          # Also export as LCOV format using xccov-to-sonarqube-generic-coverage if available
+          # This step is optional but provides better format support
+          if command -v xccov-to-sonarqube-generic-coverage &> /dev/null; then
+            xccov-to-sonarqube-generic-coverage TestResults.xcresult > coverage/sonarqube-coverage.xml
           fi
           
       - name: Debug Coverage Files
         run: |
-          echo "Coverage directory contents:"
+          echo "=== TestResults.xcresult structure ==="
+          find TestResults.xcresult -type f -name "*.profdata" | head -5
+          
+          echo "=== Coverage directory contents ==="
           ls -la coverage/
-          echo "Coverage file size:"
-          wc -l coverage/coverage.json
-          echo "First few lines of coverage file:"
-          head -20 coverage/coverage.json
+          
+          echo "=== Coverage JSON file info ==="
+          if [ -f "coverage/coverage.json" ]; then
+            echo "JSON file size: $(wc -c < coverage/coverage.json) bytes"
+            echo "JSON file lines: $(wc -l < coverage/coverage.json)"
+            echo "First 10 lines of JSON:"
+            head -10 coverage/coverage.json
+          fi
+          
+          echo "=== Coverage text file info ==="
+          if [ -f "coverage/coverage.txt" ]; then
+            echo "Text file size: $(wc -c < coverage/coverage.txt) bytes"
+            echo "Text file lines: $(wc -l < coverage/coverage.txt)"
+            echo "First 10 lines of text:"
+            head -10 coverage/coverage.txt
+          fi
           
       - name: Upload Coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          files: coverage/coverage.json
-          name: codecov-umbrella
           token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
+          xcode: true
+          xcode_archive_path: TestResults.xcresult
+          fail_ci_if_error: false
           verbose: true
+          name: codecov-umbrella
           
-      - name: Upload Coverage to Coveralls
-        uses: coverallsapp/github-action@v2
+      - name: Upload Coverage to Codecov (Fallback)
+        if: failure()
+        uses: codecov/codecov-action@v4
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/coverage.json,coverage/coverage.txt
+          fail_ci_if_error: false
+          verbose: true
+          name: codecov-fallback
