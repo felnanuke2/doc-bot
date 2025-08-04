@@ -1,0 +1,13 @@
+# Name of the coverage service or report format
+coverage_service: cobertura_xml
+# The Xcode project file
+xcodeproj: doc-bot.xcodeproj
+# The scheme to use for testing
+scheme: doc-bot
+# The output directory for the report
+output_directory: reports
+# List of files or directories to ignore
+ignore:
+  - "Pods/*"
+  - "doc-botTests/*"
+  - "doc-botUITests/*"

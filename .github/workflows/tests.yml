@@ -1,105 +1,61 @@
-name: Tests
+name: CI & Code Coverage
+
+# Controls when the workflow will run
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, develop ]
+    branches: [ main ]
 
 jobs:
-  test:
-    name: Run All Tests
-    runs-on: macos-15
+  test-and-report-coverage:
+    # The type of runner that the job will run on
+    runs-on: macos-latest
+
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
+
+      # 2. Set up Ruby environment to install Slather
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
         with:
-          submodules: recursive
-          
-      - name: Setup Xcode
+          ruby-version: '3.1' # Or the version you prefer
+          bundler-cache: true # Caches gems for faster builds
+
+      # 3. Select active Xcode version
+      - name: Select Xcode
         uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: '16.4'
-          
-      - name: Build and Test with Coverage
+
+      # 4. Run tests and generate coverage data
+      - name: Run tests
         run: |
-          xcodebuild \
+          xcodebuild test \
             -project doc-bot.xcodeproj \
-            -scheme doc-bot \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.5' \
+            -scheme YourSchemeName \
+            -destination 'platform=iOS Simulator,name=iPhone 16,OS=18.4' \
             -enableCodeCoverage YES \
-            -only-testing:doc-botTests \
-            -resultBundlePath TestResults.xcresult \
-            clean build test \
-            ONLY_ACTIVE_ARCH=YES \
-            EXCLUDED_ARCHS="x86_64" \
-            ARCHS=arm64
-          
-      - name: Generate Coverage Reports
-        run: |
-          # Create coverage directory
-          mkdir -p coverage
-          
-          # Verify TestResults.xcresult exists
-          if [ ! -d "TestResults.xcresult" ]; then
-            echo "Error: TestResults.xcresult not found"
-            ls -la
-            exit 1
-          fi
-          
-          echo "TestResults.xcresult found, generating coverage reports..."
-          
-          # Generate JSON report for debugging
-          xcrun xccov view --report --json TestResults.xcresult > coverage/coverage.json
-          
-          # Generate LCOV format for better Codecov compatibility
-          xcrun xccov view --report --only-targets TestResults.xcresult > coverage/coverage.txt
-          
-          # Also export as LCOV format using xccov-to-sonarqube-generic-coverage if available
-          # This step is optional but provides better format support
-          if command -v xccov-to-sonarqube-generic-coverage &> /dev/null; then
-            xccov-to-sonarqube-generic-coverage TestResults.xcresult > coverage/sonarqube-coverage.xml
-          fi
-          
-      - name: Debug Coverage Files
-        run: |
-          echo "=== TestResults.xcresult structure ==="
-          find TestResults.xcresult -type f -name "*.profdata" | head -5
-          
-          echo "=== Coverage directory contents ==="
-          ls -la coverage/
-          
-          echo "=== Coverage JSON file info ==="
-          if [ -f "coverage/coverage.json" ]; then
-            echo "JSON file size: $(wc -c < coverage/coverage.json) bytes"
-            echo "JSON file lines: $(wc -l < coverage/coverage.json)"
-            echo "First 10 lines of JSON:"
-            head -10 coverage/coverage.json
-          fi
-          
-          echo "=== Coverage text file info ==="
-          if [ -f "coverage/coverage.txt" ]; then
-            echo "Text file size: $(wc -c < coverage/coverage.txt) bytes"
-            echo "Text file lines: $(wc -l < coverage/coverage.txt)"
-            echo "First 10 lines of text:"
-            head -10 coverage/coverage.txt
-          fi
-          
-      - name: Upload Coverage to Codecov
+            clean test | xcpretty
+
+      # 5. Run Slather to generate coverage report
+      - name: Generate coverage report
+        run: bundle exec slather coverage --cobertura-xml --output-directory reports
+
+      # 6. Upload coverage to Codecov
+      - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          xcode: true
-          xcode_archive_path: TestResults.xcresult
-          fail_ci_if_error: false
+          file: reports/cobertura.xml
+          fail_ci_if_error: true
           verbose: true
-          name: codecov-umbrella
-          
-      - name: Upload Coverage to Codecov (Fallback)
-        if: failure()
-        uses: codecov/codecov-action@v4
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      # 7. Upload coverage report artifact
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: coverage/coverage.json,coverage/coverage.txt
-          fail_ci_if_error: false
-          verbose: true
-          name: codecov-fallback
+          name: code-coverage-report
+          path: reports/
