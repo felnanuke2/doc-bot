@@ -108,7 +108,7 @@ class ChatViewModel: ObservableObject {
                 print("Failed to load document embeddings")
                 return
             }
-            let topK = await chunkEmbedder.searchRelevantChunk(for: trimmed, chunks: chunks, limit: 1)
+            let topK = await chunkEmbedder.searchRelevantChunk(for: trimmed, chunks: chunks, limit: 3)
             
             // Build conversation history from the last 4 messages (minimal memory footprint)
             let conversationHistory = messages
