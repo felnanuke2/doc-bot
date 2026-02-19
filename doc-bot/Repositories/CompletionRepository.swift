@@ -38,5 +38,5 @@ protocol CompletionRepository {
 }
 
 protocol PromptContextGenerator {
-    func generateContext(for prompt: String, with context: String) -> any ContextualPrompt
+    func generateContext(for prompt: String, with context: String, conversationHistory: String) -> any ContextualPrompt
 }

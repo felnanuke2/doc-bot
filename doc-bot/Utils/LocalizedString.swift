@@ -35,9 +35,15 @@ enum LocalizedString {
     static let modelsAvailableTitle = NSLocalizedString("models.available.title", comment: "Available models section title")
     static let modelsNoModel = NSLocalizedString("models.no.model", comment: "No model downloaded message")
     static let modelsReady = NSLocalizedString("models.ready", comment: "Model ready status")
+    static let modelsTemperatureTitle = NSLocalizedString("models.temperature.title", comment: "Temperature section title")
+    static let modelsTemperatureFooter = NSLocalizedString("models.temperature.footer", comment: "Temperature section footer")
     
     static func modelsProgress(_ progress: Double) -> String {
         return String(format: NSLocalizedString("models.progress.format", comment: "Progress percentage"), progress * 100)
+    }
+
+    static func modelsTemperatureValue(_ value: Double) -> String {
+        return String(format: NSLocalizedString("models.temperature.value", comment: "Temperature value"), value)
     }
     
     // MARK: - Model Loading

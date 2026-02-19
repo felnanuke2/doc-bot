@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased] - 2026-02-19
+
+### 🤖 AI Model Updates
+
+- **Updated Model Collection**: Curated selection of 2026 edge AI optimized models
+- **New Default Model**: Qwen2.5-0.5B Instruct with improved instruction following and reduced looping
+- **Added SmolLM-360M**: Ultra-efficient 0.23 GiB model from HuggingFace for maximum battery life
+- **Added Qwen2.5-1.5B**: Recommended model with optimal quality-to-size ratio (0.94 GiB)
+- **Added Gemma-2-2B**: Google's instruction-tuned model (1.38 GiB)
+- **Added StableLM-2-1.6B**: Stability AI's mobile-optimized model (0.98 GiB)
+- **Added Phi-3.5-Mini**: Microsoft's latest Phi model with improved capabilities (2.2 GiB)
+- **Removed Legacy Models**: Deprecated TinyLlama, old Phi-2, and Mistral-7B for better mobile optimization
+- **Enhanced Model Selection**: Models now categorized by size classes (ultra-lightweight, lightweight, medium)
+
+### 📝 Documentation
+
+- **Updated README**: Comprehensive model list with detailed specifications and recommendations
+- **Model Descriptions**: Added clear categorization and use-case recommendations for each model
+
+---
+
 ## [Unreleased] - 2025-08-03
 
 ### 🚀 Major Features Added

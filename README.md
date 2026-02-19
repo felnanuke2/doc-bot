@@ -18,7 +18,7 @@ doc-bot is a fully offline Retrieval-Augmented Generation (RAG) app targeting iO
 - **Chunking, Embedding & Similarity Search**: Utilizes Apple's NaturalLanguage framework to split text into chunks, generate embeddings, and perform similarity search—all on-device, without Faiss or external libraries.
 - **Local Embedding Storage**: Embeddings are saved as JSON files in the app support directory using FileManager for fast, private retrieval.
 - **CoreData Persistence**: Documents, conversations, and messages are stored using CoreData for reliability and offline access with cascade deletion support.
-- **Local LLM Inference**: Answers are generated using the Qwen2-0.5B.Q4_K_M model (or other supported GGUF models) via llama.cpp integration.
+- **Local LLM Inference**: Answers are generated using Qwen2.5-0.5B Instruct (default) or other edge-optimized GGUF models via llama.cpp integration.
 - **Modern SwiftUI UI**: Clean, native interface with improved animations, typing indicators, and message bubbles.
 - **Internationalization**: Multi-language support with English, Spanish, and Portuguese (Brazil) localizations.
 - **Customizable Themes**: Light, dark, and system theme options for personalized user experience.
@@ -32,14 +32,36 @@ doc-bot is a fully offline Retrieval-Augmented Generation (RAG) app targeting iO
 4. **Vector Storage & Search**: Embeddings are stored as JSON files in the app support directory using FileManager, and similarity search is performed using Apple's NaturalLanguage framework to find relevant chunks—no Faiss required.
 5. **Persistence**: All documents, conversations, and messages are saved using CoreData for offline access and reliability.
 6. **Multiple Conversations**: Create multiple conversation threads for each document, with automatic subject generation based on the first user message.
-7. **Chat Interface**: When you ask a question, the app finds the most relevant chunks using Apple's NaturalLanguage similarity search and uses a local LLM (Qwen2-0.5B.Q4_K_M or similar) via llama.cpp to generate an answer.
+7. **Chat Interface**: When you ask a question, the app finds the most relevant chunks using Apple's NaturalLanguage similarity search and uses a local LLM (Qwen2.5-0.5B Instruct or other edge AI models) via llama.cpp to generate an answer.
 8. **Conversation Management**: Switch between conversations using the side drawer, view conversation history, and manage your chat sessions.
 
 
 ## Supported Models
 
-- **LLMs**: Qwen2-0.5B.Q4_K_M (default), chosen for its small download size and efficient memory allocation on smartphones. While not as powerful as cloud models like Claude Sonnet 4, Qwen2 provides satisfactory results and works fully offline on-device, making it ideal for mobile use. Other supported models include Phi Mini 3 Q4, TinyLlama, Mistral, OpenHermes, and others in GGUF format.
-- **Embedding Models**: Support for various embedding models in GGUF format including nomic-embed-text-v1.5 and bge-small-en-v1.5 for generating document chunk embeddings.
+### LLM Models (2026 Edge AI Optimized)
+
+The app includes a curated selection of state-of-the-art edge AI models optimized for on-device inference on mobile devices:
+
+**Ultra-Lightweight Models (< 500 MB)** - Best for resource-constrained devices:
+- **Qwen2.5-0.5B Instruct (Q4_K_M, 0.32 GiB)** ⭐ - Default model, latest Qwen version with improved instruction following
+- **SmolLM-360M Instruct (Q4_K_M, 0.23 GiB)** - HuggingFace's ultra-efficient model for maximum battery life
+
+**Lightweight Models (0.5-1 GiB)** - Optimal balance of performance and efficiency:
+- **Qwen2.5-1.5B Instruct (Q4_K_M, 0.94 GiB)** 🔥 - Recommended for best quality-to-size ratio
+- **Gemma-2-2B Instruct (Q4_K_M, 1.38 GiB)** - Google's efficient instruction-tuned model
+- **StableLM-2-1.6B (Q4_K_M, 0.98 GiB)** - Stability AI's mobile-optimized model
+
+**Medium Models (1-2 GiB)** - Higher quality, still mobile-friendly:
+- **Phi-3.5-Mini Instruct (Q4_K_M, 2.2 GiB)** - Microsoft's latest Phi model with improved capabilities
+
+All models are in GGUF format and run via llama.cpp integration. While not as powerful as cloud models like Claude Sonnet 4 or GPT-4, these models provide excellent results for on-device document Q&A and work completely offline, ensuring privacy and zero latency.
+
+### Embedding Models
+
+- **nomic-embed-text-v1.5** - High-quality text embeddings optimized for semantic search
+- **bge-small-en-v1.5** - Lightweight embedding model for efficient document chunking
+
+All embedding models support GGUF format for on-device inference.
 
 ## User Interface
 
@@ -78,7 +100,7 @@ doc-bot is a fully offline Retrieval-Augmented Generation (RAG) app targeting iO
 1. **Clone the repository**
 2. **Open `doc-bot.xcodeproj` in Xcode**
 3. **Build and run on your device or simulator**
-4. **Download a model from the Models tab** (Qwen2-0.5B.Q4_K_M recommended for first-time users)
+4. **Download a model from the Models tab** (Qwen2.5-0.5B Instruct or Qwen2.5-1.5B Instruct recommended for best results)
 5. **Import a PDF from the Documents tab**
 6. **Start chatting with your document!**
 7. **Create multiple conversations** using the conversation drawer for different topics
@@ -109,7 +131,7 @@ doc-bot is a fully offline Retrieval-Augmented Generation (RAG) app targeting iO
 - **PDFKit** for PDF text extraction with progress tracking
 - **NaturalLanguage** for chunking, embedding, and similarity search
 - **CoreData** for persistence of documents, conversations, and messages with proper relationship management
-- **llama.cpp** (via Swift bindings) for LLM and embedding inference (using Qwen2-0.5B.Q4_K_M by default for its small size and mobile suitability)
+- **llama.cpp** (via Swift bindings) for LLM and embedding inference with 2026 edge-optimized models (Qwen2.5-0.5B Instruct default for optimal mobile performance)
 - **JSON (in App Support via FileManager)** for vector storage
 - **Combine/Factory** for dependency injection and state management
 - **Modular Design**: Separated view components, repositories, and infrastructure layers for maintainability

@@ -31,6 +31,9 @@
 "models.no.model" = "Nenhum modelo foi baixado. Selecione um da lista abaixo.";
 "models.ready" = "Pronto para usar";
 "models.progress.format" = "%.0f%%";
+"models.temperature.title" = "Temperatura";
+"models.temperature.value" = "Temperatura: %.1f";
+"models.temperature.footer" = "Menor e mais focado; maior e mais criativo.";
 
 /* Model Loading */
 "model.initializing" = "Inicializando...";

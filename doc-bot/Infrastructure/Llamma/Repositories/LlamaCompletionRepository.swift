@@ -45,7 +45,17 @@ class LlamaCompletionRepository: CompletionRepository {
             continuation.yield(.finished("Error: Model file not found"))
             return
         }
-        let llamaContext: LlamaCompletionContext = try LlamaCompletionContext.create_context(path: modelUrl.path)
+        let storedTemperature = UserDefaults.standard.double(forKey: "modelTemperature")
+        let temperature: Double
+        if storedTemperature.isFinite && storedTemperature >= 0.1 && storedTemperature <= 1.0 {
+            temperature = storedTemperature
+        } else {
+            temperature = 0.7
+        }
+        let llamaContext: LlamaCompletionContext = try LlamaCompletionContext.create_context(
+            path: modelUrl.path,
+            temperature: temperature
+        )
         continuation.yield(.waiting)
         let accumulator = OutputAccumulator()
 
@@ -60,6 +70,7 @@ class LlamaCompletionRepository: CompletionRepository {
 
         await llamaContext.clear()
         let output = await accumulator.get()
-        continuation.yield(.finished(output))
+        let cleanedOutput = output.replacingOccurrences(of: "<END>", with: "")
+        continuation.yield(.finished(cleanedOutput))
     }
 }

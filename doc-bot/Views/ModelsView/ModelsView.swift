@@ -13,6 +13,7 @@ import Combine
 struct ModelsView: View {
     // Access the manager from the environment.
     @EnvironmentObject var modelManager: ModelManager
+    @AppStorage("modelTemperature") private var modelTemperature: Double = 0.7
 
     var body: some View {
         NavigationView {
@@ -41,6 +42,22 @@ struct ModelsView: View {
                         Text(LocalizedString.modelsNoModel)
                             .foregroundColor(.secondary)
                     }
+                }
+
+                Section(
+                    header: Text(LocalizedString.modelsTemperatureTitle),
+                    footer: Text(LocalizedString.modelsTemperatureFooter)
+                ) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        HStack {
+                            Text(LocalizedString.modelsTemperatureValue(modelTemperature))
+                                .font(.subheadline)
+                            Spacer()
+                        }
+                        Slider(value: $modelTemperature, in: 0.1...1.0, step: 0.1)
+                            .accessibilityLabel(LocalizedString.modelsTemperatureTitle)
+                    }
+                    .padding(.vertical, 4)
                 }
                 
                 // Section for available models to download

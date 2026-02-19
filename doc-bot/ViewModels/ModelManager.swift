@@ -37,13 +37,23 @@ class ModelManager: NSObject, ObservableObject, URLSessionDownloadDelegate {
     var modelToDownload: Model?
 
     private override init() {
-        // Define the list of available models.
+        // Define the list of available models - optimized for edge AI on mobile devices.
+        // Models are sorted by size (smallest to largest) for better mobile performance.
         self.models = [
-            Model(name: "Qwen2-0.5B (Q4_K_M, 0.32 GiB)", url: "https://huggingface.co/QuantFactory/Qwen2-0.5B-GGUF/resolve/main/Qwen2-0.5B.Q4_K_M.gguf?download=true", filename: "Qwen2-0.5B.Q4_K_M.gguf"),
-            Model(name: "TinyLlama-1.1B (Q4_0, 0.62 GiB)", url: "https://huggingface.co/TheBloke/TinyLlama-1.1B-1T-OpenOrca-GGUF/resolve/main/tinyllama-1.1b-1t-openorca.Q4_0.gguf?download=true", filename: "tinyllama-1.1b-1t-openorca.Q4_0.gguf"),
-            Model(name: "TinyLlama-1.1B Chat (Q8_0, 1.09 GiB)", url: "https://huggingface.co/TheBloke/TinyLlama-1.1B-Chat-v1.0-GGUF/resolve/main/tinyllama-1.1b-chat-v1.0.Q8_0.gguf?download=true", filename: "tinyllama-1.1b-chat-v1.0.Q8_0.gguf"),
-            Model(name: "Phi-2.7B (Q4_0, 1.57 GiB)", url: "https://huggingface.co/ggml-org/models/resolve/main/phi-2/ggml-model-q4_0.gguf?download=true", filename: "phi-2-q4_0.gguf"),
-            Model(name: "Mistral-7B-v0.1 (Q4_0, 3.57 GiB)", url: "https://huggingface.co/TheBloke/Mistral-7B-v0.1-GGUF/resolve/main/mistral-7b-v0.1.Q4_0.gguf?download=true", filename: "mistral-7b-v0.1.Q4_0.gguf"),
+            // Ultra-lightweight models (< 500 MB) - Best for resource-constrained devices
+            Model(name: "Qwen2.5-0.5B Instruct (Q4_K_M, 0.32 GiB) ⭐", url: "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf?download=true", filename: "qwen2.5-0.5b-instruct-q4_k_m.gguf"),
+            Model(name: "SmolLM-360M Instruct (Q4_K_M, 0.23 GiB)", url: "https://huggingface.co/HuggingFaceTB/SmolLM-360M-Instruct-GGUF/resolve/main/smollm-360m-instruct-q4_k_m.gguf?download=true", filename: "smollm-360m-instruct-q4_k_m.gguf"),
+            
+            // Lightweight models (0.5-1 GiB) - Good balance of performance and size
+            Model(name: "Qwen2.5-1.5B Instruct (Q4_K_M, 0.94 GiB) 🔥", url: "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf?download=true", filename: "qwen2.5-1.5b-instruct-q4_k_m.gguf"),
+            Model(name: "Gemma-2-2B Instruct (Q4_K_M, 1.38 GiB)", url: "https://huggingface.co/lmstudio-community/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q4_K_M.gguf?download=true", filename: "gemma-2-2b-it-Q4_K_M.gguf"),
+            Model(name: "StableLM-2-1.6B (Q4_K_M, 0.98 GiB)", url: "https://huggingface.co/stabilityai/stablelm-2-1_6b-GGUF/resolve/main/stablelm-2-1_6b-q4_k_m.gguf?download=true", filename: "stablelm-2-1_6b-q4_k_m.gguf"),
+            
+            // Medium models (1-2 GiB) - Higher quality, still mobile-friendly
+            Model(name: "Phi-3.5-Mini Instruct (Q4_K_M, 2.2 GiB)", url: "https://huggingface.co/bartowski/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct-Q4_K_M.gguf?download=true", filename: "Phi-3.5-mini-instruct-Q4_K_M.gguf"),
+            
+            // Legacy models (for compatibility)
+            Model(name: "Qwen2-0.5B (Q4_K_M, 0.32 GiB) [Legacy]", url: "https://huggingface.co/QuantFactory/Qwen2-0.5B-GGUF/resolve/main/Qwen2-0.5B.Q4_K_M.gguf?download=true", filename: "Qwen2-0.5B.Q4_K_M.gguf"),
         ]
         
         // Set up the file path for the downloaded model.

@@ -108,9 +108,20 @@ class ChatViewModel: ObservableObject {
                 print("Failed to load document embeddings")
                 return
             }
-            let topK = await chunkEmbedder.searchRelevantChunk(for: trimmed, chunks: chunks, limit: 3)
+            let topK = await chunkEmbedder.searchRelevantChunk(for: trimmed, chunks: chunks, limit: 1)
+            
+            // Build conversation history from the last 4 messages (minimal memory footprint)
+            let conversationHistory = messages
+                .dropLast()  // Exclude the current user message
+                .suffix(4)   // Get only last 4 messages to minimize memory
+                .map { msg -> String in
+                    let role = msg.role == .user ? "Human" : "Assistant"
+                    return "\(role): \(msg.content)"
+                }
+                .joined(separator: "\n\n")
+            
             let prompt = promptContextGenerator.generateContext(
-                for: trimmed, with: topK.map{$0.content}.joined(separator: "\n"))
+                for: trimmed, with: topK.map{$0.content}.joined(separator: "\n"), conversationHistory: conversationHistory)
             await handleCompletionStream(for: prompt, userMessage: userMessage, cancellationToken: cancellationToken!)
         }
     }

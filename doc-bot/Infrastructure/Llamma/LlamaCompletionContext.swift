@@ -63,21 +63,24 @@ actor LlamaCompletionContext {
 
     /// This variable is used to store temporarily invalid cchars
     private var temporary_invalid_cchars: [CChar]
+    private var generatedText: String
 
-    var n_len: Int32 = 1024
+    var n_len: Int32 = 256
     var n_cur: Int32 = 0
 
     var n_decode: Int32 = 0
 
-    init(model: OpaquePointer, context: OpaquePointer) {
+    init(model: OpaquePointer, context: OpaquePointer, temperature: Double) {
         self.model = model
         self.context = context
         self.tokens_list = []
         self.batch = llama_batch_init(LlamaCompletionContext.batchCapacity, 0, 1)
         self.temporary_invalid_cchars = []
+        self.generatedText = ""
         let sparams = llama_sampler_chain_default_params()
         self.sampling = llama_sampler_chain_init(sparams)
-        llama_sampler_chain_add(self.sampling, llama_sampler_init_temp(0.7))
+        let clampedTemperature = max(0.1, min(1.0, temperature))
+        llama_sampler_chain_add(self.sampling, llama_sampler_init_temp(Float(clampedTemperature)))
         llama_sampler_chain_add(self.sampling, llama_sampler_init_dist(1234))
         vocab = llama_model_get_vocab(model)
     }
@@ -90,7 +93,7 @@ actor LlamaCompletionContext {
         // llama_backend_free()
     }
 
-    static func create_context(path: String) throws -> LlamaCompletionContext {
+    static func create_context(path: String, temperature: Double) throws -> LlamaCompletionContext {
         llama_backend_init()
         var model_params = llama_model_default_params()
 
@@ -118,7 +121,7 @@ actor LlamaCompletionContext {
             throw LlamaError.couldNotInitializeContext
         }
 
-        return LlamaCompletionContext(model: model, context: context)
+        return LlamaCompletionContext(model: model, context: context, temperature: temperature)
     }
 
     func model_info() -> String {
@@ -150,6 +153,7 @@ actor LlamaCompletionContext {
 
         tokens_list = tokenize(text: text, add_bos: true)
         temporary_invalid_cchars = []
+        generatedText = ""
 
         let n_ctx = llama_n_ctx(context)
         let n_kv_req = tokens_list.count + (Int(n_len) - tokens_list.count)
@@ -208,6 +212,24 @@ actor LlamaCompletionContext {
             new_token_str = string
         } else {
             new_token_str = ""
+        }
+        generatedText += new_token_str
+        if generatedText.contains("\nHuman:") || generatedText.contains("\nAssistant:") {
+            is_done = true
+            return ""
+        }
+        if generatedText.contains("<END>") {
+            is_done = true
+            return ""
+        }
+        if generatedText.count > 200 {
+            let windowSize = 120
+            let tail = String(generatedText.suffix(windowSize))
+            let earlier = String(generatedText.dropLast(windowSize))
+            if earlier.contains(tail) {
+                is_done = true
+                return ""
+            }
         }
         print(new_token_str)
         // tokens_list.append(new_token_id)
