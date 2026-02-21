@@ -85,8 +85,9 @@ struct doc_botTests {
         let id = UUID()
         let documentID = UUID()
         let content = "Test content for embedding"
-        
-        let embeddedChunk = EmbeddedChunk(id: id, content: content, documentID: documentID)
+
+        let documentChunk = DocumentChunk(text: content, pageNumber: 0)
+        let embeddedChunk = EmbeddedChunk(id: id, documentChunk: documentChunk, documentID: documentID)
         
         #expect(embeddedChunk.id == id)
         #expect(embeddedChunk.documentID == documentID)

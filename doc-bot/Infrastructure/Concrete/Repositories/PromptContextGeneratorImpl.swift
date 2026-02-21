@@ -15,18 +15,13 @@ struct GeneratedPrompt: ContextualPrompt {
 
 final class PromptContextGeneratorImpl: PromptContextGenerator {
     func generateContext(for prompt: String, with context: String, conversationHistory: String) -> any ContextualPrompt {
-        let historySection = conversationHistory.isEmpty ? "" : "Previous conversation:\n\(conversationHistory)\n\n"
+        let historySection = conversationHistory.isEmpty ? "" : "Conversation:\n\(conversationHistory)\n\n"
+        let trimmedContext = context.trimmingCharacters(in: .whitespacesAndNewlines)
+        let contextSection = trimmedContext.isEmpty ? "" : "Context:\n\(trimmedContext)\n\n"
         let output = """
-        You are a helpful assistant. Answer questions based ONLY on the provided context and conversation history.
-        Be concise and factual. Stop immediately after answering the question.
-        Do not add extra information, examples, or continue talking beyond what's necessary.
-        If the answer is not in the context, say "I cannot find this information in the documents."
+        \(historySection)\(contextSection)Question: \(prompt)
         
-        \(historySection)Context: \(context)
-        
-        Human: \(prompt)
-        
-        Assistant:
+        Answer only based on context above. Keep answer short and direct:
 """
         return GeneratedPrompt(content: output)
     }

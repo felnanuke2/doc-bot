@@ -44,6 +44,7 @@ The app includes a curated selection of state-of-the-art edge AI models optimize
 
 **Ultra-Lightweight Models (< 500 MB)** - Best for resource-constrained devices:
 - **Qwen2.5-0.5B Instruct (Q4_K_M, 0.32 GiB)** ⭐ - Default model, latest Qwen version with improved instruction following
+- **Qwen3-0.6B Instruct (Q8_0, 0.48 GiB)** - Next-gen Qwen model with enhanced performance
 - **SmolLM-360M Instruct (Q4_K_M, 0.23 GiB)** - HuggingFace's ultra-efficient model for maximum battery life
 
 **Lightweight Models (0.5-1 GiB)** - Optimal balance of performance and efficiency:

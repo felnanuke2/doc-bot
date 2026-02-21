@@ -207,20 +207,25 @@ struct ImportedDocumentsView_Previews: PreviewProvider {
     static var previews: some View {
         // Provide mock dependencies for the view model
         class MockChunkGenerator: ChunkGeneratorRepository {
-            func generateChunks(documentID: UUID, from text: String) async -> [EmbeddableChunk] {
+            func generateChunks(documentID: UUID, from pages: [DocumentPageContent]) async -> [EmbeddableChunk] {
                 []
             }
         }
         class MockChunkEmbedder: ChunkEmbeddingRepository {
             func embed(chunk: EmbeddableChunk) async -> EmbeddedChunk {
-                return .init(id: UUID(), content: "", documentID: .init())
+                return .init(id: UUID(), documentChunk: DocumentChunk(text: "", pageNumber: 0), documentID: .init())
             }
             
             func embed(chunks: [EmbeddableChunk]) async -> [EmbeddedChunk] {
                 []
             }
             
-            func searchRelevantChunk(for query: String, chunks: [EmbeddedChunk], limit: Int) async -> [EmbeddedChunk] {
+            func searchRelevantChunk(
+                for query: String,
+                chunks: [EmbeddedChunk],
+                limit: Int,
+                minimumScore: Double
+            ) async -> [EmbeddedChunk] {
                 []
             }
             
@@ -238,7 +243,7 @@ struct ImportedDocumentsView_Previews: PreviewProvider {
            
         }
         class MockContentExtractor: DocumentContentExtractor {
-            func extractContent(from fileURL: URL) async -> String? { "" }
+            func extractContent(from fileURL: URL) async -> [DocumentPageContent]? { [] }
         }
         class MockCompletionRepository: CompletionRepository {
             

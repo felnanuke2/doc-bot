@@ -19,7 +19,7 @@ struct RepositoryTests {
         private let mockEmbedding = Array(repeating: 0.5, count: 512)
         
         func embed(chunk: EmbeddableChunk) async -> EmbeddedChunk {
-            let embedded = EmbeddedChunk(id: chunk.id, content: chunk.content, documentID: chunk.documentID)
+            let embedded = EmbeddedChunk(id: chunk.id, documentChunk: chunk.documentChunk, documentID: chunk.documentID)
             embedded.embedding = mockEmbedding
             return embedded
         }
@@ -57,8 +57,8 @@ struct RepositoryTests {
             self.mockContent = mockContent
         }
         
-        func extractContent(from fileURL: URL) async -> String? {
-            return mockContent
+        func extractContent(from fileURL: URL) async -> [DocumentPageContent]? {
+            return [DocumentPageContent(pageNumber: 0, text: mockContent)]
         }
     }
     
@@ -74,7 +74,8 @@ struct RepositoryTests {
         Finally, this is the fourth sentence to ensure we have enough content for multiple chunks.
         """
         
-        let chunks = await generator.generateChunks(documentID: documentID, from: testText)
+        let pages = [DocumentPageContent(pageNumber: 0, text: testText)]
+        let chunks = await generator.generateChunks(documentID: documentID, from: pages)
         
         #expect(chunks.count > 0, "Should generate at least one chunk")
         #expect(chunks.allSatisfy { $0.documentID == documentID }, "All chunks should have correct document ID")
@@ -87,7 +88,8 @@ struct RepositoryTests {
         let documentID = UUID()
         let emptyText = ""
         
-        let chunks = await generator.generateChunks(documentID: documentID, from: emptyText)
+        let pages = [DocumentPageContent(pageNumber: 0, text: emptyText)]
+        let chunks = await generator.generateChunks(documentID: documentID, from: pages)
         
         #expect(chunks.isEmpty, "Empty text should produce no chunks")
     }
@@ -98,7 +100,8 @@ struct RepositoryTests {
         let documentID = UUID()
         let whitespaceText = "   \n\t   \n   "
         
-        let chunks = await generator.generateChunks(documentID: documentID, from: whitespaceText)
+        let pages = [DocumentPageContent(pageNumber: 0, text: whitespaceText)]
+        let chunks = await generator.generateChunks(documentID: documentID, from: pages)
         
         #expect(chunks.isEmpty, "Whitespace-only text should produce no chunks")
     }
@@ -142,10 +145,10 @@ struct RepositoryTests {
         let repository = MockChunkEmbeddingRepository()
         let documentID = UUID()
         let embeddedChunks = [
-            EmbeddedChunk(id: UUID(), content: "First chunk", documentID: documentID),
-            EmbeddedChunk(id: UUID(), content: "Second chunk", documentID: documentID),
-            EmbeddedChunk(id: UUID(), content: "Third chunk", documentID: documentID),
-            EmbeddedChunk(id: UUID(), content: "Fourth chunk", documentID: documentID)
+            EmbeddedChunk(id: UUID(), documentChunk: DocumentChunk(text: "First chunk", pageNumber: 0), documentID: documentID),
+            EmbeddedChunk(id: UUID(), documentChunk: DocumentChunk(text: "Second chunk", pageNumber: 0), documentID: documentID),
+            EmbeddedChunk(id: UUID(), documentChunk: DocumentChunk(text: "Third chunk", pageNumber: 0), documentID: documentID),
+            EmbeddedChunk(id: UUID(), documentChunk: DocumentChunk(text: "Fourth chunk", pageNumber: 0), documentID: documentID)
         ]
         
         let relevantChunks = await repository.searchRelevantChunk(
@@ -164,8 +167,8 @@ struct RepositoryTests {
         let repository = MockVectorChunkRepository()
         let documentID = UUID()
         let embeddedChunks = [
-            EmbeddedChunk(id: UUID(), content: "First chunk", documentID: documentID),
-            EmbeddedChunk(id: UUID(), content: "Second chunk", documentID: documentID)
+            EmbeddedChunk(id: UUID(), documentChunk: DocumentChunk(text: "First chunk", pageNumber: 0), documentID: documentID),
+            EmbeddedChunk(id: UUID(), documentChunk: DocumentChunk(text: "Second chunk", pageNumber: 0), documentID: documentID)
         ]
         
         // Store embeddings
@@ -200,7 +203,7 @@ struct RepositoryTests {
         
         let extractedContent = await extractor.extractContent(from: testURL)
         
-        #expect(extractedContent == mockContent, "Should return the mock content")
+        #expect(extractedContent?.first?.text == mockContent, "Should return the mock content")
     }
     
     @Test("MockDocumentContentExtractor handles multiple calls")
@@ -214,7 +217,7 @@ struct RepositoryTests {
         
         #expect(content1 != nil, "Should return content for first call")
         #expect(content2 != nil, "Should return content for second call")
-        #expect(content1 == content2, "Should return same mock content for all calls")
+        #expect(content1?.first?.text == content2?.first?.text, "Should return same mock content for all calls")
     }
     
     // MARK: - Integration Tests
@@ -234,7 +237,7 @@ struct RepositoryTests {
         let content = await contentExtractor.extractContent(from: testURL)
         #expect(content != nil, "Content extraction should succeed")
         
-        let chunks = await generator.generateChunks(documentID: documentID, from: content!)
+        let chunks = await generator.generateChunks(documentID: documentID, from: content ?? [])
         #expect(chunks.count > 0, "Should generate chunks")
         
         let embedded = await embedder.embed(chunks: chunks)

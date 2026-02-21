@@ -16,7 +16,12 @@ protocol ChunkEmbeddingRepository {
     func embed(chunks: [EmbeddableChunk]) async -> [EmbeddedChunk]
     
     
-    func searchRelevantChunk(for query: String, chunks: [EmbeddedChunk], limit: Int) async -> [EmbeddedChunk]
+    func searchRelevantChunk(
+        for query: String,
+        chunks: [EmbeddedChunk],
+        limit: Int,
+        minimumScore: Double
+    ) async -> [EmbeddedChunk]
 }
 
 /// Protocol for types that can store and retrieve embeddings.
@@ -31,16 +36,16 @@ protocol VectorChunkRepository {
 
 /// Protocol for types that can generate chunks from text.
 protocol ChunkGeneratorRepository {
-    /// Generates chunks from the provided text.
-    /// - Parameter text: The text to generate chunks from.
-    /// - Returns: An array of `EmbeddableChunk` generated from the text.
-    func generateChunks(documentID: UUID, from text: String) async -> [EmbeddableChunk]
+    /// Generates chunks from the provided pages.
+    /// - Parameter pages: The page content to generate chunks from.
+    /// - Returns: An array of `EmbeddableChunk` generated from the pages.
+    func generateChunks(documentID: UUID, from pages: [DocumentPageContent]) async -> [EmbeddableChunk]
 }
 
 /// Protocol for types that can extract text content from various document files.
 protocol DocumentContentExtractor {
     /// Extracts the textual content from a file at the given URL.
     /// - Parameter fileURL: The URL of the file to extract content from.
-    /// - Returns: The extracted text content as a String, or nil if extraction fails.
-    func extractContent(from fileURL: URL) async -> String?
+    /// - Returns: The extracted page content, or nil if extraction fails.
+    func extractContent(from fileURL: URL) async -> [DocumentPageContent]?
 }

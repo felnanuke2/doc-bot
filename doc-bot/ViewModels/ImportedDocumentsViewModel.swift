@@ -50,14 +50,17 @@ class ImportedDocumentsViewModel: ObservableObject {
         }
 
         do {
-            let text = await documentContentExtractor.extractContent(from: fileURL) ?? ""
             let docId = UUID()
+
+            _ = try DocumentFileStore.storeDocument(from: fileURL, documentId: docId)
+
+            let pages = await documentContentExtractor.extractContent(from: fileURL) ?? []
             
             await MainActor.run {
                 self.importProgress = 0.25
             }
             
-            let chunks = await chunkGenerator.generateChunks(documentID: docId, from: text)
+            let chunks = await chunkGenerator.generateChunks(documentID: docId, from: pages)
             
             await MainActor.run {
                 self.importProgress = 0.5

@@ -25,53 +25,71 @@ class NaturalLanguageChunkGenerator: ChunkGeneratorRepository {
     private let chunkTargetWordCount = 200
     
     /// Generates chunks by grouping sentences to reach a target word count.
-    func generateChunks(documentID: UUID, from text: String) async -> [EmbeddableChunk] {
+    func generateChunks(documentID: UUID, from pages: [DocumentPageContent]) async -> [EmbeddableChunk] {
         var chunks: [EmbeddableChunk] = []
-        
-        // Use NLTokenizer to split the text by sentence for more granular control.
-        let sentenceTokenizer = NLTokenizer(unit: .sentence)
-        sentenceTokenizer.string = text
-        
-        // Extract all sentences from the text.
-        let sentences = sentenceTokenizer.tokens(for: text.startIndex..<text.endIndex).map {
-            text[$0].trimmingCharacters(in: .whitespacesAndNewlines)
-        }.filter { !$0.isEmpty }
-        
-        
-        guard !sentences.isEmpty else {
-            return []
-        }
-        
-        var currentChunkSentences: [String] = []
-        var currentChunkWordCount = 0
-        
-        for sentence in sentences {
-            // Estimate word count for the new sentence. A simple split by space is a good approximation.
-            let sentenceWordCount = sentence.split(separator: " ").count
-            
-            // If the current chunk is not empty and adding the new sentence would push it over the target size,
-            // then we should finalize the current chunk and start a new one.
-            if currentChunkWordCount > 0 && (currentChunkWordCount + sentenceWordCount > chunkTargetWordCount) {
-                let chunkContent = currentChunkSentences.joined(separator: " ")
-                chunks.append(EmbeddableChunk(content: chunkContent, documentID: documentID))
-                
-                // Start a new chunk with the current sentence.
-                currentChunkSentences = [sentence]
-                currentChunkWordCount = sentenceWordCount
-            } else {
-                // Otherwise, add the new sentence to the current chunk.
-                currentChunkSentences.append(sentence)
-                currentChunkWordCount += sentenceWordCount
+
+        for page in pages {
+            let text = page.text
+            let sentenceTokenizer = NLTokenizer(unit: .sentence)
+            sentenceTokenizer.string = text
+
+            let sentenceRanges = sentenceTokenizer.tokens(for: text.startIndex..<text.endIndex)
+            let sentences: [(text: String, range: Range<String.Index>)] = sentenceRanges.compactMap { range in
+                let sentenceText = text[range].trimmingCharacters(in: .whitespacesAndNewlines)
+                return sentenceText.isEmpty ? nil : (sentenceText, range)
+            }
+
+            guard !sentences.isEmpty else { continue }
+
+            var currentChunkWordCount = 0
+            var currentChunkStart: Range<String.Index>.Bound?
+            var currentChunkEnd: Range<String.Index>.Bound?
+
+            for sentence in sentences {
+                let sentenceWordCount = sentence.text.split(separator: " ").count
+                let willOverflow = currentChunkWordCount > 0
+                    && (currentChunkWordCount + sentenceWordCount > chunkTargetWordCount)
+
+                if willOverflow, let start = currentChunkStart, let end = currentChunkEnd {
+                    let chunkRange = start..<end
+                    let chunkText = text[chunkRange].trimmingCharacters(in: .whitespacesAndNewlines)
+                    if !chunkText.isEmpty {
+                        let nsRange = NSRange(chunkRange, in: text)
+                        let documentChunk = DocumentChunk(
+                            text: String(chunkText),
+                            pageNumber: page.pageNumber,
+                            boundingBox: DocumentTextRange.from(nsRange)
+                        )
+                        chunks.append(EmbeddableChunk(documentChunk: documentChunk, documentID: documentID))
+                    }
+
+                    currentChunkStart = sentence.range.lowerBound
+                    currentChunkEnd = sentence.range.upperBound
+                    currentChunkWordCount = sentenceWordCount
+                } else {
+                    if currentChunkStart == nil {
+                        currentChunkStart = sentence.range.lowerBound
+                    }
+                    currentChunkEnd = sentence.range.upperBound
+                    currentChunkWordCount += sentenceWordCount
+                }
+            }
+
+            if let start = currentChunkStart, let end = currentChunkEnd {
+                let chunkRange = start..<end
+                let chunkText = text[chunkRange].trimmingCharacters(in: .whitespacesAndNewlines)
+                if !chunkText.isEmpty {
+                    let nsRange = NSRange(chunkRange, in: text)
+                    let documentChunk = DocumentChunk(
+                        text: String(chunkText),
+                        pageNumber: page.pageNumber,
+                        boundingBox: DocumentTextRange.from(nsRange)
+                    )
+                    chunks.append(EmbeddableChunk(documentChunk: documentChunk, documentID: documentID))
+                }
             }
         }
-        
-        // After the loop, there might be a remaining chunk that hasn't been added yet.
-        // Add the last chunk if it contains any sentences.
-        if !currentChunkSentences.isEmpty {
-            let finalChunkContent = currentChunkSentences.joined(separator: " ")
-            chunks.append(EmbeddableChunk(content: finalChunkContent, documentID: documentID))
-        }
-        
+
         return chunks
     }
 }

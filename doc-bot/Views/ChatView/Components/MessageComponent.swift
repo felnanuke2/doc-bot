@@ -11,6 +11,18 @@ import SwiftUI
 /// A professionally styled message bubble with improved typography and spacing
 struct MessageComponent: View {
     let message: ChatMessage
+    let referenceChunks: [DocumentChunk]
+    let onReferenceTap: ((DocumentChunk) -> Void)?
+
+    init(
+        message: ChatMessage,
+        referenceChunks: [DocumentChunk] = [],
+        onReferenceTap: ((DocumentChunk) -> Void)? = nil
+    ) {
+        self.message = message
+        self.referenceChunks = referenceChunks
+        self.onReferenceTap = onReferenceTap
+    }
 
     private var isUser: Bool {
         message.role == .user
@@ -22,7 +34,7 @@ struct MessageComponent: View {
                 Spacer(minLength: 60)
             }
 
-            VStack(alignment: isUser ? .trailing : .leading, spacing: 4) {
+            VStack(alignment: isUser ? .trailing : .leading, spacing: 6) {
                 Text(message.content)
                     .font(.body)
                     .lineLimit(nil)
@@ -38,6 +50,39 @@ struct MessageComponent: View {
                             corners: isUser
                                 ? [.topLeft, .topRight, .bottomLeft]
                                 : [.topLeft, .topRight, .bottomRight]))
+
+                if !isUser && !referenceChunks.isEmpty {
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Reference:")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+
+                        if let chunk = referenceChunks.first {
+                            Text(referencePreview(for: chunk.text))
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .lineLimit(3)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 6)
+                                .background(Color(.systemGray6))
+                                .clipShape(RoundedRectangle(cornerRadius: 10))
+
+                            Button {
+                                onReferenceTap?(chunk)
+                            } label: {
+                                Text("View page \(chunk.pageNumber + 1)")
+                                    .font(.caption)
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 6)
+                                    .background(Color(.systemGray6))
+                                    .foregroundColor(.primary)
+                                    .clipShape(Capsule())
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal, 4)
+                }
 
                 Text(timeString(from: message.createdAt))
                     .font(.caption2)
@@ -66,5 +111,11 @@ struct MessageComponent: View {
         let formatter = DateFormatter()
         formatter.timeStyle = .short
         return formatter.string(from: date)
+    }
+
+    private func referencePreview(for text: String) -> String {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        let preview = trimmed.count > 160 ? String(trimmed.prefix(160)) + "..." : trimmed
+        return preview.isEmpty ? "(no text)" : preview
     }
 }

@@ -29,11 +29,14 @@ class ChatViewModel: ObservableObject {
     
     @Injected(\.subjectRepository) private var subjectRepository: SubjectRepository
 
+    @Injected(\.referenceOutput) private var referenceOutput: ReferenceOutput
+
     @Published var conversation: ChatConversation?
     @Published var newMessageText: String = ""
     @Published var isSending: Bool = false
     @Published var messages: [ChatMessage] = []
     @Published var isProgressing: Bool = false
+    @Published var messageReferences: [UUID: [DocumentChunk]] = [:]
 
     private var streamingAssistantMessage: ChatMessage?
     
@@ -61,6 +64,7 @@ class ChatViewModel: ObservableObject {
         isSending = false
         isProgressing = false
         newMessageText = ""
+        messageReferences = [:]
     }
     
     /// Clears all messages in the current conversation and resets state
@@ -71,6 +75,7 @@ class ChatViewModel: ObservableObject {
         isSending = false
         isProgressing = false
         newMessageText = ""
+        messageReferences = [:]
     }
 
     func sendMessage() {
@@ -108,7 +113,14 @@ class ChatViewModel: ObservableObject {
                 print("Failed to load document embeddings")
                 return
             }
-            let topK = await chunkEmbedder.searchRelevantChunk(for: trimmed, chunks: chunks, limit: 3)
+            let minimumScore = 0.25
+            let topK = await chunkEmbedder.searchRelevantChunk(
+                for: trimmed,
+                chunks: chunks,
+                limit: 3,
+                minimumScore: minimumScore
+            )
+            let candidateChunks = topK.map { $0.documentChunk }
             
             // Build conversation history from the last 4 messages (minimal memory footprint)
             let conversationHistory = messages
@@ -121,8 +133,16 @@ class ChatViewModel: ObservableObject {
                 .joined(separator: "\n\n")
             
             let prompt = promptContextGenerator.generateContext(
-                for: trimmed, with: topK.map{$0.content}.joined(separator: "\n"), conversationHistory: conversationHistory)
-            await handleCompletionStream(for: prompt, userMessage: userMessage, cancellationToken: cancellationToken!)
+                for: trimmed,
+                with: topK.map { $0.content }.joined(separator: "\n"),
+                conversationHistory: conversationHistory
+            )
+            await handleCompletionStream(
+                for: prompt,
+                userMessage: userMessage,
+                cancellationToken: cancellationToken!,
+                referenceCandidates: candidateChunks
+            )
         }
     }
 
@@ -242,7 +262,10 @@ class ChatViewModel: ObservableObject {
     }
 
     private func handleCompletionStream(
-        for context: any ContextualPrompt, userMessage: ChatMessage, cancellationToken: CancellationToken
+        for context: any ContextualPrompt,
+        userMessage: ChatMessage,
+        cancellationToken: CancellationToken,
+        referenceCandidates: [DocumentChunk]
     )
         async
     {
@@ -316,6 +339,12 @@ class ChatViewModel: ObservableObject {
                             
                             // Store the assistant message
                             await self.storeMessage(finishedMessage)
+
+                            let resolved = self.referenceOutput.resolveReferences(
+                                generatedAnswer: final,
+                                candidateChunks: referenceCandidates
+                            )
+                            self.messageReferences[finishedMessage.id] = resolved
                         } else {
                             let assistantMessage = ChatMessage(
                                 id: UUID(),
@@ -330,6 +359,12 @@ class ChatViewModel: ObservableObject {
                             
                             // Store the assistant message
                             await self.storeMessage(assistantMessage)
+
+                            let resolved = self.referenceOutput.resolveReferences(
+                                generatedAnswer: final,
+                                candidateChunks: referenceCandidates
+                            )
+                            self.messageReferences[assistantMessage.id] = resolved
                         }
                         
                         // Generate and assign subject after first assistant reply

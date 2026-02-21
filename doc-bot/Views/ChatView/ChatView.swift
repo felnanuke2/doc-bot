@@ -4,6 +4,7 @@ struct ChatView: View {
     @StateObject private var viewModel: ChatViewModel
     @Environment(\.presentationMode) var presentationMode
     @State private var showConversationDrawer = false
+    @State private var selectedReference: DocumentChunk?
     
     private let documentId: UUID
     
@@ -19,8 +20,14 @@ struct ChatView: View {
                 ScrollView {
                     LazyVStack(spacing: 8) {
                         ForEach(viewModel.messages) { message in
-                            MessageComponent(message: message)
-                                .id(message.id)
+                            MessageComponent(
+                                message: message,
+                                referenceChunks: viewModel.messageReferences[message.id] ?? [],
+                                onReferenceTap: { chunk in
+                                    selectedReference = chunk
+                                }
+                            )
+                            .id(message.id)
                         }
                         
                         if viewModel.isProgressing || viewModel.isSending {
@@ -46,6 +53,9 @@ struct ChatView: View {
                 sendAction: { viewModel.sendMessage() },
                 stopAction: { viewModel.stopStreaming() }
             )
+        }
+        .sheet(item: $selectedReference) { reference in
+            PDFReferenceSheet(documentId: documentId, referenceChunk: reference)
         }
         .navigationTitle(documentTitle)
         .navigationBarTitleDisplayMode(.inline)

@@ -27,9 +27,14 @@ actor NaturalLanguageChunkEmbeddingRepository: ChunkEmbeddingRepository {
         return ragSystem.documents
     }
     
-    func searchRelevantChunk(for query: String, chunks: [EmbeddedChunk], limit: Int) async -> [EmbeddedChunk] {
+    func searchRelevantChunk(
+        for query: String,
+        chunks: [EmbeddedChunk],
+        limit: Int,
+        minimumScore: Double
+    ) async -> [EmbeddedChunk] {
         let ragSystem = NLRAGSystem(documents: chunks)
-        return ragSystem.searchRelevantDocuments(for: query, limit: limit)
+        return ragSystem.searchRelevantDocuments(for: query, limit: limit, minimumScore: minimumScore)
     }
 
 }

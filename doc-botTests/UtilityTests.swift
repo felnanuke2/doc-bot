@@ -241,8 +241,9 @@ struct UtilityTests {
         let id = UUID()
         let documentID = UUID()
         let content = "Test embedded content"
-        
-        let embeddedChunk = EmbeddedChunk(id: id, content: content, documentID: documentID)
+
+        let documentChunk = DocumentChunk(text: content, pageNumber: 0)
+        let embeddedChunk = EmbeddedChunk(id: id, documentChunk: documentChunk, documentID: documentID)
         
         #expect(embeddedChunk.id == id, "ID should match")
         #expect(embeddedChunk.content == content, "Content should match")

@@ -16,7 +16,8 @@ struct IntegrationTests {
     // MARK: - Mock Infrastructure
     
     actor MockChunkGeneratorRepository: ChunkGeneratorRepository {
-        func generateChunks(documentID: UUID, from text: String) async -> [EmbeddableChunk] {
+        func generateChunks(documentID: UUID, from pages: [DocumentPageContent]) async -> [EmbeddableChunk] {
+            let text = pages.map { $0.text }.joined(separator: "\n")
             guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
                 return []
             }
@@ -42,7 +43,7 @@ struct IntegrationTests {
         private let embeddingDimension = 384 // Common dimension for embedding models
         
         func embed(chunk: EmbeddableChunk) async -> EmbeddedChunk {
-            let embedded = EmbeddedChunk(id: chunk.id, content: chunk.content, documentID: chunk.documentID)
+            let embedded = EmbeddedChunk(id: chunk.id, documentChunk: chunk.documentChunk, documentID: chunk.documentID)
             
             // Generate deterministic but realistic embeddings based on content
             var embedding: [Double] = []
@@ -102,16 +103,16 @@ struct IntegrationTests {
             self.contentMap = contentMap
         }
         
-        func extractContent(from fileURL: URL) async -> String? {
+        func extractContent(from fileURL: URL) async -> [DocumentPageContent]? {
             let fileName = fileURL.lastPathComponent
             
             // Return specific content for known files, or generate mock content
             if let specificContent = contentMap[fileName] {
-                return specificContent
+                return [DocumentPageContent(pageNumber: 0, text: specificContent)]
             }
             
             // Generate realistic mock PDF content
-            return """
+            let content = """
             \(fileName.replacingOccurrences(of: ".pdf", with: "")) Document Content
             
             Introduction
@@ -134,6 +135,7 @@ struct IntegrationTests {
             The document concludes with a summary of key findings and recommendations for future work.
             These insights provide valuable guidance for practitioners and researchers in the field.
             """
+            return [DocumentPageContent(pageNumber: 0, text: content)]
         }
     }
     
@@ -182,6 +184,14 @@ struct IntegrationTests {
         Container.shared.documentContentExtractor.register { MockDocumentContentExtractor(contentMap: customContentMap) }
         Container.shared.importedDocumentRepository.register { MockImportedDocumentRepository() }
     }
+
+    private func makeTempPDFURL(fileName: String) throws -> URL {
+        let directory = FileManager.default.temporaryDirectory
+        let url = directory.appendingPathComponent(fileName)
+        let data = Data("mock pdf".utf8)
+        try data.write(to: url, options: .atomic)
+        return url
+    }
     
     // MARK: - End-to-End Document Processing Tests
     
@@ -195,7 +205,7 @@ struct IntegrationTests {
         let contentExtractor = Container.shared.documentContentExtractor()
         let documentRepo = Container.shared.importedDocumentRepository()
         
-        let testURL = URL(fileURLWithPath: "/test/sample-document.pdf")
+        let testURL = try makeTempPDFURL(fileName: "sample-document.pdf")
         let documentID = UUID()
         
         // Step 1: Extract content
@@ -204,7 +214,7 @@ struct IntegrationTests {
         #expect(!content!.isEmpty, "Extracted content should not be empty")
         
         // Step 2: Generate chunks
-        let chunks = await chunkGenerator.generateChunks(documentID: documentID, from: content!)
+        let chunks = await chunkGenerator.generateChunks(documentID: documentID, from: content ?? [])
         #expect(chunks.count > 0, "Should generate chunks from content")
         #expect(chunks.allSatisfy { $0.documentID == documentID }, "All chunks should have correct document ID")
         
@@ -280,14 +290,14 @@ struct IntegrationTests {
         
         // Process both documents
         let documents = [
-            (url: URL(fileURLWithPath: "/test/technical-manual.pdf"), id: UUID()),
-            (url: URL(fileURLWithPath: "/test/user-guide.pdf"), id: UUID())
+            (url: try makeTempPDFURL(fileName: "technical-manual.pdf"), id: UUID()),
+            (url: try makeTempPDFURL(fileName: "user-guide.pdf"), id: UUID())
         ]
         
         var allEmbedded: [EmbeddedChunk] = []
         
         for (url, docId) in documents {
-            let content = await contentExtractor.extractContent(from: url)!
+            let content = await contentExtractor.extractContent(from: url) ?? []
             let chunks = await chunkGenerator.generateChunks(documentID: docId, from: content)
             let embedded = await chunkEmbedder.embed(chunks: chunks)
             
@@ -341,9 +351,9 @@ struct IntegrationTests {
         
         // Test document import
         let testFiles = [
-            URL(fileURLWithPath: "/test/document1.pdf"),
-            URL(fileURLWithPath: "/test/document2.pdf"),
-            URL(fileURLWithPath: "/test/document3.pdf")
+            try makeTempPDFURL(fileName: "document1.pdf"),
+            try makeTempPDFURL(fileName: "document2.pdf"),
+            try makeTempPDFURL(fileName: "document3.pdf")
         ]
         
         for fileURL in testFiles {
@@ -374,9 +384,9 @@ struct IntegrationTests {
         try await Task.sleep(nanoseconds: 300_000_000) // Increased wait time
         
         let testFiles = [
-            URL(fileURLWithPath: "/test/concurrent1.pdf"),
-            URL(fileURLWithPath: "/test/concurrent2.pdf"),
-            URL(fileURLWithPath: "/test/concurrent3.pdf")
+            try makeTempPDFURL(fileName: "concurrent1.pdf"),
+            try makeTempPDFURL(fileName: "concurrent2.pdf"),
+            try makeTempPDFURL(fileName: "concurrent3.pdf")
         ]
         
         // Import documents sequentially to avoid race conditions in tests
@@ -409,12 +419,13 @@ struct IntegrationTests {
         let vectorStore = Container.shared.vectorChunkRepository()
         let contentExtractor = Container.shared.documentContentExtractor()
         
-        let testURL = URL(fileURLWithPath: "/test/large-document.pdf")
+        let testURL = try makeTempPDFURL(fileName: "large-document.pdf")
         let documentID = UUID()
         
         // Process large document
-        let content = await contentExtractor.extractContent(from: testURL)!
-        #expect(content.count > 10000, "Content should be large")
+        let content = await contentExtractor.extractContent(from: testURL) ?? []
+        let combinedContent = content.map { $0.text }.joined(separator: "\n")
+        #expect(combinedContent.count > 10000, "Content should be large")
         
         let chunks = await chunkGenerator.generateChunks(documentID: documentID, from: content)
         #expect(chunks.count > 10, "Should generate many chunks for large document")
@@ -447,9 +458,9 @@ struct IntegrationTests {
         
         // Test with various problematic scenarios
         let problematicFiles = [
-            URL(fileURLWithPath: "/test/empty-document.pdf"),
-            URL(fileURLWithPath: "/test/special-chars-document.pdf"),
-            URL(fileURLWithPath: "/test/very-long-filename-that-might-cause-issues-in-some-systems.pdf")
+            try makeTempPDFURL(fileName: "empty-document.pdf"),
+            try makeTempPDFURL(fileName: "special-chars-document.pdf"),
+            try makeTempPDFURL(fileName: "very-long-filename-that-might-cause-issues-in-some-systems.pdf")
         ]
         
         for fileURL in problematicFiles {
@@ -461,7 +472,7 @@ struct IntegrationTests {
         }
         
         // Verify system is still functional after error scenarios
-        let normalFile = URL(fileURLWithPath: "/test/normal-document.pdf")
+        let normalFile = try makeTempPDFURL(fileName: "normal-document.pdf")
         await viewModel.importDocument(from: normalFile)
         
         #expect(viewModel.documents.contains { $0.name == "normal-document.pdf" }, 

@@ -40,20 +40,10 @@ class ModelManager: NSObject, ObservableObject, URLSessionDownloadDelegate {
         // Define the list of available models - optimized for edge AI on mobile devices.
         // Models are sorted by size (smallest to largest) for better mobile performance.
         self.models = [
-            // Ultra-lightweight models (< 500 MB) - Best for resource-constrained devices
-            Model(name: "Qwen2.5-0.5B Instruct (Q4_K_M, 0.32 GiB) ⭐", url: "https://huggingface.co/Qwen/Qwen2.5-0.5B-Instruct-GGUF/resolve/main/qwen2.5-0.5b-instruct-q4_k_m.gguf?download=true", filename: "qwen2.5-0.5b-instruct-q4_k_m.gguf"),
-            Model(name: "SmolLM-360M Instruct (Q4_K_M, 0.23 GiB)", url: "https://huggingface.co/HuggingFaceTB/SmolLM-360M-Instruct-GGUF/resolve/main/smollm-360m-instruct-q4_k_m.gguf?download=true", filename: "smollm-360m-instruct-q4_k_m.gguf"),
-            
-            // Lightweight models (0.5-1 GiB) - Good balance of performance and size
-            Model(name: "Qwen2.5-1.5B Instruct (Q4_K_M, 0.94 GiB) 🔥", url: "https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF/resolve/main/qwen2.5-1.5b-instruct-q4_k_m.gguf?download=true", filename: "qwen2.5-1.5b-instruct-q4_k_m.gguf"),
-            Model(name: "Gemma-2-2B Instruct (Q4_K_M, 1.38 GiB)", url: "https://huggingface.co/lmstudio-community/gemma-2-2b-it-GGUF/resolve/main/gemma-2-2b-it-Q4_K_M.gguf?download=true", filename: "gemma-2-2b-it-Q4_K_M.gguf"),
-            Model(name: "StableLM-2-1.6B (Q4_K_M, 0.98 GiB)", url: "https://huggingface.co/stabilityai/stablelm-2-1_6b-GGUF/resolve/main/stablelm-2-1_6b-q4_k_m.gguf?download=true", filename: "stablelm-2-1_6b-q4_k_m.gguf"),
-            
-            // Medium models (1-2 GiB) - Higher quality, still mobile-friendly
-            Model(name: "Phi-3.5-Mini Instruct (Q4_K_M, 2.2 GiB)", url: "https://huggingface.co/bartowski/Phi-3.5-mini-instruct-GGUF/resolve/main/Phi-3.5-mini-instruct-Q4_K_M.gguf?download=true", filename: "Phi-3.5-mini-instruct-Q4_K_M.gguf"),
-            
-            // Legacy models (for compatibility)
-            Model(name: "Qwen2-0.5B (Q4_K_M, 0.32 GiB) [Legacy]", url: "https://huggingface.co/QuantFactory/Qwen2-0.5B-GGUF/resolve/main/Qwen2-0.5B.Q4_K_M.gguf?download=true", filename: "Qwen2-0.5B.Q4_K_M.gguf"),
+            // Ultra-lightweight models (< 500 MB) - Optimized for mobile devices
+            Model(name: "Qwen2-0.5B Instruct (Q2_K, 0.32 GiB)", url: "https://huggingface.co/Qwen/Qwen2-0.5B-Instruct-GGUF/resolve/main/qwen2-0_5b-instruct-q2_k.gguf?download=true", filename: "qwen2-0_5b-instruct-q2_k.gguf"),
+            Model(name: "Qwen2-0.5B Instruct (Q4_K_M, 0.38 GiB) ⭐", url: "https://huggingface.co/Qwen/Qwen2-0.5B-Instruct-GGUF/resolve/main/qwen2-0_5b-instruct-q4_k_m.gguf?download=true", filename: "qwen2-0_5b-instruct-q4_k_m.gguf"),
+            Model(name: "Qwen3-0.6B Instruct (Q8_0, 0.48 GiB)", url: "https://huggingface.co/Qwen/Qwen3-0.6B-GGUF/resolve/main/Qwen3-0.6B-Q8_0.gguf?download=true", filename: "Qwen3-0.6B-Q8_0.gguf"),
         ]
         
         // Set up the file path for the downloaded model.

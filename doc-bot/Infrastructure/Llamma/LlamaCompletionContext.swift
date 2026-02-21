@@ -222,13 +222,18 @@ actor LlamaCompletionContext {
             is_done = true
             return ""
         }
-        if generatedText.count > 200 {
-            let windowSize = 120
-            let tail = String(generatedText.suffix(windowSize))
-            let earlier = String(generatedText.dropLast(windowSize))
-            if earlier.contains(tail) {
-                is_done = true
-                return ""
+        
+        // Detect repetition with multiple window sizes to catch different patterns
+        let windowSizes = [30, 60, 120]  // Check for short, medium, and long repetitions
+        for windowSize in windowSizes {
+            if generatedText.count > windowSize {
+                let tail = String(generatedText.suffix(windowSize))
+                let earlier = String(generatedText.dropLast(windowSize))
+                if earlier.contains(tail) {
+                    print("Repetition detected (window size: \(windowSize)), stopping generation")
+                    is_done = true
+                    return ""
+                }
             }
         }
         print(new_token_str)

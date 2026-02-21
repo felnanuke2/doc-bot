@@ -17,6 +17,10 @@ extension Container {
         Factory(self) { PdfKitDocumentContentExtractor() }
     }
 
+    var referenceOutput: Factory<ReferenceOutput> {
+        Factory(self) { NaturalLanguageReferenceResolver() }
+    }
+
     var importedDocumentsViewModel: Factory<ImportedDocumentsViewModel> {
         Factory(self) { @MainActor in ImportedDocumentsViewModel() }
     }

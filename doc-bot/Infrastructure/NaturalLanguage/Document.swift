@@ -38,13 +38,20 @@ class NLRAGSystem {
         documents.append(document)
     }
     
-    func searchRelevantDocuments(for query: String, limit: Int = 3) -> [EmbeddedChunk] {
+    func searchRelevantDocuments(
+        for query: String,
+        limit: Int = 3,
+        minimumScore: Double = 0.25
+    ) -> [EmbeddedChunk] {
         let queryEmbedding = getEmbedding(for: query)
-        let sortedDocuments = documents.sorted { doc1, doc2 in
-            guard let emb1 = doc1.embedding, let emb2 = doc2.embedding else { return false }
-            return cosineSimilarity(queryEmbedding, emb1) > cosineSimilarity(queryEmbedding, emb2)
+        let scored = documents.compactMap { document -> (EmbeddedChunk, Double)? in
+            guard let embedding = document.embedding else { return nil }
+            let score = cosineSimilarity(queryEmbedding, embedding)
+            return (document, score)
         }
-        return Array(sortedDocuments.prefix(limit))
+        let filtered = scored.filter { $0.1 >= minimumScore }
+        let sorted = filtered.sorted { $0.1 > $1.1 }
+        return Array(sorted.prefix(limit)).map { $0.0 }
     }
     
     
@@ -65,10 +72,11 @@ class NLRAGSystem {
     }
     
     private func cosineSimilarity(_ v1: [Double], _ v2: [Double]) -> Double {
-        guard v1.count == v2.count else { return 0 }
+        guard v1.count == v2.count, !v1.isEmpty else { return 0 }
         let dotProduct = zip(v1, v2).map(*).reduce(0, +)
         let magnitude1 = sqrt(v1.map { $0 * $0 }.reduce(0, +))
         let magnitude2 = sqrt(v2.map { $0 * $0 }.reduce(0, +))
+        guard magnitude1 > 0, magnitude2 > 0 else { return 0 }
         return dotProduct / (magnitude1 * magnitude2)
     }
 }

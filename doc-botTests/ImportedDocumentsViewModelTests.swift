@@ -17,7 +17,8 @@ struct ImportedDocumentsViewModelTests {
     // MARK: - Mock Dependencies
     
     actor MockChunkGeneratorRepository: ChunkGeneratorRepository {
-        func generateChunks(documentID: UUID, from text: String) async -> [EmbeddableChunk] {
+        func generateChunks(documentID: UUID, from pages: [DocumentPageContent]) async -> [EmbeddableChunk] {
+            let text = pages.map { $0.text }.joined(separator: "\n")
             // Return mock chunks based on text length
             guard !text.isEmpty else { return [] }
             
@@ -35,7 +36,7 @@ struct ImportedDocumentsViewModelTests {
     
     actor MockChunkEmbeddingRepository: ChunkEmbeddingRepository {
         func embed(chunk: EmbeddableChunk) async -> EmbeddedChunk {
-            let embedded = EmbeddedChunk(id: chunk.id, content: chunk.content, documentID: chunk.documentID)
+            let embedded = EmbeddedChunk(id: chunk.id, documentChunk: chunk.documentChunk, documentID: chunk.documentID)
             embedded.embedding = Array(repeating: 0.5, count: 512)
             return embedded
         }
@@ -75,8 +76,9 @@ struct ImportedDocumentsViewModelTests {
             self.mockContent = mockContent
         }
         
-        func extractContent(from fileURL: URL) async -> String? {
-            return shouldSucceed ? mockContent : nil
+        func extractContent(from fileURL: URL) async -> [DocumentPageContent]? {
+            guard shouldSucceed else { return nil }
+            return [DocumentPageContent(pageNumber: 0, text: mockContent)]
         }
     }
     
@@ -176,6 +178,14 @@ struct ImportedDocumentsViewModelTests {
         let viewModel = ImportedDocumentsViewModel()
         return viewModel
     }
+
+    private func makeTempPDFURL(fileName: String) throws -> URL {
+        let directory = FileManager.default.temporaryDirectory
+        let url = directory.appendingPathComponent(fileName)
+        let data = Data("mock pdf".utf8)
+        try data.write(to: url, options: .atomic)
+        return url
+    }
     
     // MARK: - ViewModel Initialization Tests
     
@@ -198,7 +208,7 @@ struct ImportedDocumentsViewModelTests {
     @Test("ImportedDocumentsViewModel successfully imports document")
     func testViewModelSuccessfullyImportsDocument() async throws {
         let viewModel = createTestViewModel()
-        let testURL = URL(fileURLWithPath: "/test/document.pdf")
+        let testURL = try makeTempPDFURL(fileName: "document.pdf")
         
         // Wait for initial loading to complete
         try await Task.sleep(nanoseconds: 200_000_000)
@@ -225,7 +235,7 @@ struct ImportedDocumentsViewModelTests {
         Container.shared.importedDocumentRepository.register { MockImportedDocumentRepository() }
         
         let viewModel = ImportedDocumentsViewModel()
-        let testURL = URL(fileURLWithPath: "/test/empty-document.pdf")
+        let testURL = try makeTempPDFURL(fileName: "empty-document.pdf")
         
         // Wait for initialization
         try await Task.sleep(nanoseconds: 200_000_000)
@@ -249,7 +259,7 @@ struct ImportedDocumentsViewModelTests {
         Container.shared.importedDocumentRepository.register { MockImportedDocumentRepository() }
         
         let viewModel = ImportedDocumentsViewModel()
-        let testURL = URL(fileURLWithPath: "/test/failed-document.pdf")
+        let testURL = try makeTempPDFURL(fileName: "failed-document.pdf")
         
         // Wait for initialization
         try await Task.sleep(nanoseconds: 200_000_000)
@@ -265,7 +275,7 @@ struct ImportedDocumentsViewModelTests {
     @Test("ImportedDocumentsViewModel manages import progress correctly")
     func testViewModelManagesImportProgressCorrectly() async throws {
         let viewModel = createTestViewModel()
-        let testURL = URL(fileURLWithPath: "/test/progress-document.pdf")
+        let testURL = try makeTempPDFURL(fileName: "progress-document.pdf")
         
         // Wait for initialization
         try await Task.sleep(nanoseconds: 200_000_000)
@@ -282,8 +292,8 @@ struct ImportedDocumentsViewModelTests {
     @Test("ImportedDocumentsViewModel resets state between imports")
     func testViewModelResetsStateBetweenImports() async throws {
         let viewModel = createTestViewModel()
-        let testURL1 = URL(fileURLWithPath: "/test/document1.pdf")
-        let testURL2 = URL(fileURLWithPath: "/test/document2.pdf")
+        let testURL1 = try makeTempPDFURL(fileName: "document1.pdf")
+        let testURL2 = try makeTempPDFURL(fileName: "document2.pdf")
         
         // Wait for initialization
         try await Task.sleep(nanoseconds: 200_000_000)
@@ -324,7 +334,7 @@ struct ImportedDocumentsViewModelTests {
         Container.shared.importedDocumentRepository.register { FailingMockRepository() }
         
         let viewModel = ImportedDocumentsViewModel()
-        let testURL = URL(fileURLWithPath: "/test/error-document.pdf")
+        let testURL = try makeTempPDFURL(fileName: "error-document.pdf")
         
         // Wait for initialization
         try await Task.sleep(nanoseconds: 200_000_000)
